@@ -47,7 +47,7 @@ def main():
     errors = []
     for t in UNIVERSE:
         try:
-            df = history(t, "2y", "1d", refresh=True)
+            df = history(t, "10y", "1d", refresh=True)
             closes[t] = df["Close"]
             bh_rets[t] = df["Close"].pct_change().fillna(0.0)
             for s in STRATEGIES:
