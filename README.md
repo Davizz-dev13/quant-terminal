@@ -52,9 +52,14 @@ Las alertas ya enviadas se deduplican en `data/alert_state.json` y cada corrida 
 
 ```bash
 python validate_signals.py
+python scripts/walk_forward.py
 ```
 
-Descarga 10 años de datos, aplica costes y escribe `data/validation_results.csv`. Un Sharpe histórico positivo no basta: mira el comportamiento por activo, subperiodo y costes antes de fiarte de una señal.
+`validate_signals.py` descarga 10 años de datos, aplica costes y escribe `data/validation_results.csv`. Un Sharpe histórico positivo no basta: mira el comportamiento por activo, subperiodo y costes antes de fiarte de una señal.
+
+`walk_forward.py` hace la validación seria: evalúa cada estrategia en pliegues anuales sucesivos usando solo el pasado disponible hasta cada año (out-of-sample) y reporta Sharpe mediano por año, porcentaje de años positivos y agregados OOS. Es lo más parecido a haberla operado de verdad.
+
+El dashboard separa siempre tres cosas: el **paper trading en vivo** (track record real desde el go-live, el número que importa), la **validación walk-forward** (robustez histórica) y el **backtest** (referencia, claramente etiquetado).
 
 ## Estructura
 

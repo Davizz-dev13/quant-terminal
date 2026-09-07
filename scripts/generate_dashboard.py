@@ -61,7 +61,9 @@ def main():
     dates = [str(d.date()) for d in idx]
     year = idx[-1].year
 
+    GO_LIVE = "2026-09-07"  # inicio del paper trading en vivo (arranque del servicio)
     out = {"generated_at": pd.Timestamp.utcnow().isoformat(), "universe": UNIVERSE,
+           "go_live": GO_LIVE,
            "strategies": {}, "per_asset": {}, "signals": [], "errors": errors}
 
     for s in STRATEGIES:
@@ -84,6 +86,21 @@ def main():
                 "bh_equity": [round(float(v), 4) for v in b],
                 **stats(rets[(t, s)]),
             }
+
+    # Paper trading en vivo: curvas desde el go-live, normalizadas a 1.
+    live = {"start": GO_LIVE, "dates": [], "strategies": {}, "bh": []}
+    live_idx = [i for i, d in enumerate(dates) if d > GO_LIVE]
+    if live_idx:
+        live["dates"] = [dates[i] for i in live_idx]
+        for s in STRATEGIES:
+            portfolio = pd.DataFrame({t: rets[(t, s)] for t in UNIVERSE if (t, s) in rets}).mean(axis=1)
+            seg = portfolio.iloc[live_idx]
+            eq = (1 + seg.fillna(0.0)).cumprod()
+            live["strategies"][s] = [round(float(v), 4) for v in eq]
+        bh = pd.DataFrame(bh_rets).mean(axis=1).iloc[live_idx]
+        bh_eq = (1 + bh.fillna(0.0)).cumprod()
+        live["bh"] = [round(float(v), 4) for v in bh_eq]
+    out["live"] = live
 
     # Latest signals: regime changes in the last 30 sessions
     for t in UNIVERSE:
