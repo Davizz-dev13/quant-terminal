@@ -1,0 +1,11 @@
+streamlit>=1.48
+pandas>=2.2
+numpy>=2.0
+yfinance>=0.2.66
+plotly>=6.0
+requests>=2.32
+scipy>=1.14
+
+python-dotenv>=1.0
+pyarrow>=16.0
+pyyaml>=6.0

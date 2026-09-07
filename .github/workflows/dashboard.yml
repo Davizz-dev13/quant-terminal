@@ -1,0 +1,28 @@
+name: Actualizar dashboard
+
+on:
+  schedule:
+    # 21:30 UTC, de lunes a viernes: despues del cierre de EE.UU. todo el año
+    - cron: '30 21 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pandas numpy yfinance pyarrow pyyaml
+      - run: python scripts/generate_dashboard.py
+      - name: Commit data.json si hay cambios
+        run: |
+          git config user.name "quant-terminal-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add docs/data.json
+          git diff --cached --quiet || git commit -m "Datos del dashboard: $(date -u +%Y-%m-%d)"
+          git push

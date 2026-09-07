@@ -1,0 +1,30 @@
+market:
+  universe: [SPY, QQQ, IWM, DIA, GLD, TLT, BTC-USD, ETH-USD, EURUSD=X, GC=F, CL=F, ^VIX]
+  equities: [AAPL, MSFT, NVDA, AMZN, META, GOOGL, AVGO, TSM, AMD, NFLX, ASML, ORCL, JPM, XOM, LLY, COST]
+  indices: [SPY, QQQ, IWM, DIA, EFA, EEM]
+  macro: [TLT, GLD, SLV, UUP, EURUSD=X, JPY=X, GC=F, CL=F, ^VIX, BTC-USD, ETH-USD]
+
+signals:
+  sma200:
+    enabled: true
+    # Sessions the close must stay above/below the 200-day SMA before the regime changes.
+    confirmation_days: 2
+
+alerts:
+  poll_minutes: 60
+  # Minimum hours between two alerts of the same ticker/strategy/side.
+  cooldown_hours: 20
+  only_on_new_signal: true
+  # Sessions scanned on each run, so a missed day does not lose a recent signal.
+  lookback_days: 5
+
+backtest:
+  transaction_cost: 0.001
+  # Annualized simple rate paid on uninvested cash.
+  cash_rate_annual: 0.02
+  # VolTarget sizing: weight = target_vol / realized_vol(window), clipped to
+  # [0, max_weight], updated every rebalance_days sessions.
+  voltarget:
+    window: 20
+    rebalance_days: 5
+    max_weight: 1.0
