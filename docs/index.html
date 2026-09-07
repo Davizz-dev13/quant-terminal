@@ -177,26 +177,31 @@ function renderLive() {
   });
 }
 
+function renorm(arr, i0) {
+  const base = arr[i0];
+  return arr.slice(i0).map(v => v / base);
+}
+
 function renderMain() {
   const i0 = sliceFrom(tfStart(state.tf));
   const labels = DATA.dates.slice(i0);
   let datasets = [];
   if (!state.asset) {
     Object.entries(DATA.strategies).forEach(([name, s], idx) => {
-      datasets.push({ label: name, data: s.equity.slice(i0), borderColor: COLORS[idx % COLORS.length],
+      datasets.push({ label: name, data: renorm(s.equity, i0), borderColor: COLORS[idx % COLORS.length],
         borderWidth: 1.6, pointRadius: 0, tension: 0.15 });
     });
     const bh = Object.values(DATA.strategies)[0];
-    if (bh) datasets.push({ label: 'Buy & Hold', data: bh.bh_equity.slice(i0), borderColor: '#6e7681',
+    if (bh) datasets.push({ label: 'Buy & Hold', data: renorm(bh.bh_equity, i0), borderColor: '#6e7681',
       borderWidth: 1.2, borderDash: [5,4], pointRadius: 0, tension: 0.15 });
   } else {
     Object.keys(DATA.strategies).forEach((name, idx) => {
       const s = DATA.per_asset[state.asset + '|' + name];
-      if (s) datasets.push({ label: name, data: s.equity.slice(i0), borderColor: COLORS[idx % COLORS.length],
+      if (s) datasets.push({ label: name, data: renorm(s.equity, i0), borderColor: COLORS[idx % COLORS.length],
         borderWidth: 1.6, pointRadius: 0, tension: 0.15 });
     });
     const anyS = DATA.per_asset[state.asset + '|' + Object.keys(DATA.strategies)[0]];
-    if (anyS) datasets.push({ label: 'Buy & Hold ' + state.asset, data: anyS.bh_equity.slice(i0),
+    if (anyS) datasets.push({ label: 'Buy & Hold ' + state.asset, data: renorm(anyS.bh_equity, i0),
       borderColor: '#6e7681', borderWidth: 1.2, borderDash: [5,4], pointRadius: 0, tension: 0.15 });
   }
   if (mainChart) mainChart.destroy();
