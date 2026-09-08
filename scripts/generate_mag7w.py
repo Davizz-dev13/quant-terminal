@@ -87,6 +87,7 @@ def main():
             ret = weekly_backtest(x, pos, COST, CASH)
             bh = x["Close"].pct_change().fillna(0.0)
             trades = trades_from_position(x, pos)
+            bh_stats = stats_w(bh)
             closed = [tr for tr in trades if not tr["open"]]
             wins = [tr for tr in closed if tr["return_pct"] > 0]
             port_rets[t], bh_rets[t] = ret, bh
@@ -99,7 +100,10 @@ def main():
                           "n_trades": len(closed),
                           "win_rate": round(100 * len(wins) / len(closed), 0) if closed else None,
                           "avg_trade": round(float(np.mean([tr["return_pct"] for tr in closed])), 2) if closed else None,
-                          "exposure": round(float(pos.mean()) * 100, 0)},
+                          "exposure": round(float(pos.mean()) * 100, 0),
+                          "bh_total_return": bh_stats.get("total_return"),
+                          "bh_sharpe": bh_stats.get("sharpe"),
+                          "bh_max_dd": bh_stats.get("max_dd")},
             }
             cur = pos.iloc[-1]
             if cur == 1:
@@ -120,12 +124,16 @@ def main():
         eq = (1 + portfolio.fillna(0.0)).cumprod()
         bh_eq = (1 + bhp.fillna(0.0)).cumprod()
         fl = folds_w(portfolio, START_YEAR)
+        bhfl = {f["year"]: f for f in folds_w(bhp, START_YEAR)}
+        for f in fl:
+            f["bh_return_pct"] = bhfl.get(f["year"], {}).get("return_pct")
         pos_folds = [f for f in fl if f["return_pct"] > 0]
         out["portfolio"] = {
             "dates": [str(d.date()) for d in portfolio.index],
             "equity": [round(float(v), 4) for v in eq],
             "bh_equity": [round(float(v), 4) for v in bh_eq],
             "stats": stats_w(portfolio),
+            "bh_stats": stats_w(bhp),
             "folds": fl,
             "pct_folds_positive": round(100 * len(pos_folds) / len(fl), 0) if fl else None,
         }

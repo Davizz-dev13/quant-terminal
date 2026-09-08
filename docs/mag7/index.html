@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mag7 SMA200 Semanal - Estrategia contrarian</title>
+<title>Estrategia Semanal SMA200W + RSI - Terminal Cuantitativo</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
@@ -38,7 +38,7 @@
 </head>
 <body>
 <header>
-  <h1>Mag7 + Oro + BTC &middot; SMA200 Semanal</h1>
+  <h1>Estrategia Semanal &middot; SMA200W + RSI70 / Recorte 5%</h1>
   <div class="sub" id="ruletext"></div>
 </header>
 <main>
@@ -56,13 +56,14 @@
   <div class="panel">
     <h2>Walk-forward anual (cartera equiponderada, out-of-sample) <span class="badge">se&ntilde;al ejecutable la semana siguiente</span></h2>
     <div id="wf-note" class="sub" style="margin-bottom:8px"></div>
-    <table id="wf-table"><thead><tr><th>A&ntilde;o</th><th>Retorno</th><th>Sharpe</th><th>Max DD</th></tr></thead><tbody></tbody></table>
+    <table id="wf-table"><thead><tr><th>A&ntilde;o</th><th>Retorno</th><th>B&amp;H</th><th>Sharpe</th><th>Max DD</th></tr></thead><tbody></tbody></table>
   </div>
 
   <div class="panel">
     <h2>Backtest completo (referencia) <span class="badge ref">no garantiza resultados futuros</span></h2>
     <div class="kpis" id="bt-kpis"></div>
-    <table id="bt-table"><thead><tr><th>Activo</th><th>Retorno total</th><th>Sharpe</th><th>Max DD</th><th>Operaciones</th><th>% ganadoras</th><th>Media/op.</th><th>Exposici&oacute;n</th></tr></thead><tbody></tbody></table>
+    <div style="max-width:640px;height:260px;margin-bottom:14px"><canvas id="bt-chart"></canvas></div>
+    <table id="bt-table"><thead><tr><th>Activo</th><th>Estrategia</th><th>B&amp;H</th><th>Sharpe</th><th>Sharpe B&amp;H</th><th>Max DD</th><th>Max DD B&amp;H</th><th>Operaciones</th><th>% ganadoras</th><th>Media/op.</th><th>Exposici&oacute;n</th></tr></thead><tbody></tbody></table>
   </div>
 </main>
 <footer id="foot"></footer>
@@ -116,21 +117,29 @@ fetch('mag7.json').then(r=>r.json()).then(d=>{
     const tb=document.querySelector('#wf-table tbody');
     wf.folds.forEach(f=>{
       const tr=document.createElement('tr');
-      tr.innerHTML='<td>'+f.year+'</td><td class="'+cls(f.return_pct)+'">'+fmtPct(f.return_pct)+'</td><td>'+f.sharpe+'</td><td class="neg">'+f.max_dd+'%</td>';
+      tr.innerHTML='<td>'+f.year+'</td><td class="'+cls(f.return_pct)+'">'+fmtPct(f.return_pct)+'</td><td class="'+cls(f.bh_return_pct)+'">'+fmtPct(f.bh_return_pct)+'</td><td>'+(f.sharpe==null?'-':f.sharpe)+'</td><td class="neg">'+f.max_dd+'%</td>';
       tb.appendChild(tr);
     });
-    const st=wf.stats;
+    const st=wf.stats, bh=wf.bh_stats;
     document.getElementById('bt-kpis').innerHTML =
       '<div class="kpi"><b>'+fmtPct(st.total_return)+'</b>retorno total</div>'+
-      '<div class="kpi"><b>'+st.sharpe+'</b>Sharpe</div>'+
-      '<div class="kpi"><b>'+st.max_dd+'%</b>Max DD</div>'+
+      '<div class="kpi"><b>'+fmtPct(bh.total_return)+'</b>B&amp;H</div>'+
+      '<div class="kpi"><b>'+st.sharpe+'</b>Sharpe (B&amp;H '+(bh.sharpe==null?'-':bh.sharpe)+')</div>'+
+      '<div class="kpi"><b>'+st.max_dd+'%</b>Max DD (B&amp;H '+bh.max_dd+'%)</div>'+
       '<div class="kpi"><b>'+fmtPct(st.ytd_return)+'</b>YTD</div>';
+    new Chart(document.getElementById('bt-chart'), {data:{datasets:[
+      {type:'line', label:'Estrategia', data:wf.dates.map((x,i)=>({x,y:wf.equity[i]})), borderColor:'#58a6ff', borderWidth:1.6, pointRadius:0},
+      {type:'line', label:'Buy & Hold', data:wf.dates.map((x,i)=>({x,y:wf.bh_equity[i]})), borderColor:'#8b949e', borderWidth:1.4, pointRadius:0, borderDash:[4,3]},
+    ]}, options:{maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      scales:{x:{type:'time',time:{unit:'year'},ticks:{color:'#8b949e',maxTicksLimit:10},grid:{color:'#21262d'}},
+              y:{type:'logarithmic',ticks:{color:'#8b949e'},grid:{color:'#21262d'}}},
+      plugins:{legend:{labels:{color:'#8b949e',boxWidth:10,font:{size:10}}},title:{display:true,text:'Cartera equiponderada (base 1)',color:'#8b949e',font:{size:11}}}}});
   }
   const tb2=document.querySelector('#bt-table tbody');
   for (const [t,a] of Object.entries(d.assets)) {
     const s=a.stats;
     const tr=document.createElement('tr');
-    tr.innerHTML='<td>'+t+'</td><td class="'+cls(s.total_return)+'">'+fmtPct(s.total_return)+'</td><td>'+s.sharpe+'</td><td class="neg">'+s.max_dd+'%</td><td>'+s.n_trades+'</td><td>'+(s.win_rate??'-')+'%</td><td>'+(s.avg_trade??'-')+'%</td><td>'+s.exposure+'%</td>';
+    tr.innerHTML='<td>'+t+'</td><td class="'+cls(s.total_return)+'">'+fmtPct(s.total_return)+'</td><td class="'+cls(s.bh_total_return)+'">'+fmtPct(s.bh_total_return)+'</td><td>'+s.sharpe+'</td><td>'+(s.bh_sharpe==null?'-':s.bh_sharpe)+'</td><td class="neg">'+s.max_dd+'%</td><td class="neg">'+s.bh_max_dd+'%</td><td>'+s.n_trades+'</td><td>'+(s.win_rate??'-')+'%</td><td>'+(s.avg_trade??'-')+'%</td><td>'+s.exposure+'%</td>';
     tb2.appendChild(tr);
   }
 });
