@@ -19,7 +19,7 @@ from scripts.mag7w_core import weekly_frame, weekly_position, trades_from_positi
 
 UNIVERSE = ["AAPL", "MSFT", "NVDA", "AMZN", "META", "GOOGL", "TSLA", "GLD", "BTC-USD"]
 GO_LIVE = "2026-09-08"
-START_YEAR = 2019  # pliegues OOS anuales (la SMA200 semanal necesita ~4 años de calentamiento)
+WINDOW_YEARS = 10  # metricas/graficas solo ultimos 10 años; el historico previo solo calienta la SMA200W
 
 CFG = yaml.safe_load(open(ROOT / "config/settings.yaml", encoding="utf8"))
 COST = float(CFG.get("backtest", {}).get("transaction_cost", 0.001))
@@ -84,9 +84,15 @@ def main():
             df = download(t)
             x = weekly_frame(df)
             pos = weekly_position(x)
-            ret = weekly_backtest(x, pos, COST, CASH)
-            bh = x["Close"].pct_change().fillna(0.0)
-            trades = trades_from_position(x, pos)
+            ret_full = weekly_backtest(x, pos, COST, CASH)
+            bh_full = x["Close"].pct_change().fillna(0.0)
+            wstart = x.index[-1] - pd.DateOffset(years=WINDOW_YEARS)
+            trades = [tr for tr in trades_from_position(x, pos)
+                      if tr["entry_date"] >= str(wstart.date())]
+            x = x[x.index >= wstart]
+            pos = pos[pos.index >= wstart]
+            ret = ret_full[ret_full.index >= wstart]
+            bh = bh_full[bh_full.index >= wstart]
             bh_stats = stats_w(bh)
             closed = [tr for tr in trades if not tr["open"]]
             wins = [tr for tr in closed if tr["return_pct"] > 0]
@@ -119,12 +125,15 @@ def main():
             out["errors"].append(f"{t}: {e}")
 
     if port_rets:
-        portfolio = pd.DataFrame(port_rets).mean(axis=1)
-        bhp = pd.DataFrame(bh_rets).mean(axis=1)
+        portfolio = pd.DataFrame(port_rets).mean(axis=1).dropna()
+        bhp = pd.DataFrame(bh_rets).mean(axis=1).dropna()
+        wstart = portfolio.index[-1] - pd.DateOffset(years=WINDOW_YEARS)
+        portfolio = portfolio[portfolio.index >= wstart]
+        bhp = bhp[bhp.index >= wstart]
         eq = (1 + portfolio.fillna(0.0)).cumprod()
         bh_eq = (1 + bhp.fillna(0.0)).cumprod()
-        fl = folds_w(portfolio, START_YEAR)
-        bhfl = {f["year"]: f for f in folds_w(bhp, START_YEAR)}
+        fl = folds_w(portfolio, portfolio.index[0].year)
+        bhfl = {f["year"]: f for f in folds_w(bhp, bhp.index[0].year)}
         for f in fl:
             f["bh_return_pct"] = bhfl.get(f["year"], {}).get("return_pct")
         pos_folds = [f for f in fl if f["return_pct"] > 0]
