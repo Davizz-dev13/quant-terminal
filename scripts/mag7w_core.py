@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 
 ENTRY_DROP = 0.0        # cruce simple a la baja
-RSI_LEVEL = 70.0
+DEFAULT_RSI_LEVEL = 70.0
 EXIT_DD = 0.05          # caida del 5% desde el maximo tras sobrecompra
 
 
@@ -32,7 +32,7 @@ def weekly_frame(daily: pd.DataFrame) -> pd.DataFrame:
     return x
 
 
-def weekly_position(x: pd.DataFrame) -> pd.Series:
+def weekly_position(x: pd.DataFrame, rsi_level: float = DEFAULT_RSI_LEVEL) -> pd.Series:
     """0/1 por semana (senal al cierre de esa semana)."""
     pos = pd.Series(0, index=x.index, dtype=int)
     state, armed, peak = 0, False, np.nan
@@ -42,7 +42,7 @@ def weekly_position(x: pd.DataFrame) -> pd.Series:
             if not np.isnan(sma.iloc[i]) and c.iloc[i - 1] > sma.iloc[i - 1] and c.iloc[i] < sma.iloc[i]:
                 state, armed, peak = 1, False, np.nan
         else:
-            if not armed and not np.isnan(rsi.iloc[i]) and rsi.iloc[i] >= RSI_LEVEL:
+            if not armed and not np.isnan(rsi.iloc[i]) and rsi.iloc[i] >= rsi_level:
                 armed, peak = True, c.iloc[i]
             if armed:
                 peak = max(peak, c.iloc[i])

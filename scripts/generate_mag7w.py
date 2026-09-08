@@ -17,13 +17,16 @@ sys.path.insert(0, str(ROOT))
 
 from scripts.mag7w_core import weekly_frame, weekly_position, trades_from_position, weekly_backtest
 
-UNIVERSE = ["AAPL", "MSFT", "NVDA", "AMZN", "META", "GOOGL", "TSLA", "GLD", "BTC-USD"]
+UNIVERSE = ["AAPL", "MSFT", "NVDA", "AMZN", "META", "GOOGL", "TSLA", "GLD", "BTC-USD", "SPY", "QQQ"]
 GO_LIVE = "2026-09-08"
 WINDOW_YEARS = 10  # metricas/graficas solo ultimos 10 años; el historico previo solo calienta la SMA200W
 
 CFG = yaml.safe_load(open(ROOT / "config/settings.yaml", encoding="utf8"))
 COST = float(CFG.get("backtest", {}).get("transaction_cost", 0.001))
 CASH = float(CFG.get("backtest", {}).get("cash_rate_annual", 0.02))
+MAG7W_CFG = CFG.get("mag7w", {})
+RSI_DEFAULT = float(MAG7W_CFG.get("rsi_level", 70))
+RSI_BY_ASSET = {k: float(v) for k, v in MAG7W_CFG.get("rsi_level_by_asset", {}).items()}
 
 
 def download(t: str) -> pd.DataFrame:
@@ -73,7 +76,7 @@ def main():
     out = {"generated_at": pd.Timestamp.utcnow().isoformat(), "universe": UNIVERSE,
            "go_live": GO_LIVE, "rules": {
                "entry": "Cruce a la baja de la SMA200 semanal (cierre semanal)",
-               "exit": "RSI(14) semanal > 70 arma la salida; venta al caer >5% desde el maximo posterior",
+               "exit": "RSI(14) semanal supera el nivel que arma la salida (85 generico; oro 87, S&P500 75, Nasdaq 79); venta al caer >5% desde el maximo posterior",
                "execution": "Senal al cierre de la semana, posicion desde la semana siguiente",
                "cost": COST, "cash_rate": CASH},
            "assets": {}, "portfolio": {}, "live": [], "errors": []}
@@ -83,11 +86,13 @@ def main():
         try:
             df = download(t)
             x = weekly_frame(df)
-            pos = weekly_position(x)
+            rsi_level = RSI_BY_ASSET.get(t, RSI_DEFAULT)
+            pos = weekly_position(x, rsi_level)
             ret_full = weekly_backtest(x, pos, COST, CASH)
             bh_full = x["Close"].pct_change().fillna(0.0)
             wstart = x.index[-1] - pd.DateOffset(years=WINDOW_YEARS)
-            trades = [tr for tr in trades_from_position(x, pos)
+            all_trades = trades_from_position(x, pos)
+            trades = [tr for tr in all_trades
                       if tr["entry_date"] >= str(wstart.date())]
             x = x[x.index >= wstart]
             pos = pos[pos.index >= wstart]
@@ -98,6 +103,7 @@ def main():
             wins = [tr for tr in closed if tr["return_pct"] > 0]
             port_rets[t], bh_rets[t] = ret, bh
             out["assets"][t] = {
+                "rsi_level": rsi_level,
                 "dates": [str(d.date()) for d in x.index],
                 "close": [round(float(v), 2) for v in x["Close"]],
                 "sma200": [None if np.isnan(v) else round(float(v), 2) for v in x["SMA200"]],
@@ -113,7 +119,7 @@ def main():
             }
             cur = pos.iloc[-1]
             if cur == 1:
-                open_tr = trades[-1] if trades and trades[-1]["open"] else None
+                open_tr = all_trades[-1] if all_trades and all_trades[-1]["open"] else None
                 out["live"].append({"asset": t, "state": "LONG",
                                     "entry_date": open_tr["entry_date"] if open_tr else None,
                                     "entry_price": open_tr["entry_price"] if open_tr else None,

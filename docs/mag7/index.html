@@ -38,7 +38,7 @@
 </head>
 <body>
 <header>
-  <h1>Estrategia Semanal &middot; SMA200W + RSI70 / Recorte 5%</h1>
+  <h1>Estrategia Semanal &middot; SMA200W + RSI / Recorte 5%</h1>
   <div class="sub" id="ruletext"></div>
 </header>
 <main>
@@ -91,7 +91,7 @@ fetch('mag7.json').then(r=>r.json()).then(d=>{
   for (const [t,a] of Object.entries(d.assets)) {
     const card = document.createElement('div'); card.className='card';
     const s = a.stats;
-    card.innerHTML = '<h3>'+t+'</h3><div class="meta">'+s.n_trades+' ops · '+fmtPct(s.total_return)+' total · Sharpe '+s.sharpe+' · MaxDD '+s.max_dd+'%</div><canvas></canvas>';
+    card.innerHTML = '<h3>'+t+'</h3><div class="meta">'+s.n_trades+' ops · '+fmtPct(s.total_return)+' total · Sharpe '+(s.sharpe==null?'-':s.sharpe)+' · MaxDD '+s.max_dd+'% · RSI '+(a.rsi_level||85)+'</div><canvas></canvas>';
     grid.appendChild(card);
     const buys=[], sells=[], openB=[];
     a.trades.forEach(tr=>{

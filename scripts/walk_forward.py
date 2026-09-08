@@ -24,13 +24,18 @@ sys.path.insert(0, str(ROOT))
 
 from core.data import history
 from core.backtest import backtest_strategy
+from scripts.david_sma200w import david_weekly_daily_returns
 
 UNIVERSE = ["SPY", "QQQ", "GLD", "GC=F", "CL=F", "TLT", "AMD", "TSM", "ASML", "AVGO", "BTC-USD"]
-STRATEGIES = ["EMA20>EMA50", "EMA10>EMA30", "EMA50", "Donchian20", "SMA200", "ROC60", "MeanReversionZ"]
+STRATEGIES = ["SMA200W+RSI", "ROC60", "Donchian20"]
+DAVID_STRATEGY = "SMA200W+RSI"
 
 CFG = yaml.safe_load(open(ROOT / "config/settings.yaml", encoding="utf8"))
 COST = float(CFG.get("backtest", {}).get("transaction_cost", 0.001))
 CASH = float(CFG.get("backtest", {}).get("cash_rate_annual", 0.02))
+MAG7W_CFG = CFG.get("mag7w", {})
+RSI_DEFAULT = float(MAG7W_CFG.get("rsi_level", 70))
+RSI_BY_ASSET = {k: float(v) for k, v in MAG7W_CFG.get("rsi_level_by_asset", {}).items()}
 START_YEAR = 2018  # primer ano de prueba; lo anterior es "entrenamiento"
 
 
@@ -55,8 +60,14 @@ def main():
         try:
             df = history(t, "10y", "1d")  # cache del generator; sin refresh
             for s in STRATEGIES:
-                r, _ = backtest_strategy(df, s, cost=COST, cash_rate=CASH)
-                rets[(t, s)] = r
+                if s == DAVID_STRATEGY:
+                    df_full = history(t, "max", "1d")  # calentamiento SMA200W
+                    r_full, _ = david_weekly_daily_returns(
+                        df_full, COST, CASH, RSI_BY_ASSET.get(t, RSI_DEFAULT))
+                    rets[(t, s)] = r_full.reindex(df.index).fillna(0.0)
+                else:
+                    r, _ = backtest_strategy(df, s, cost=COST, cash_rate=CASH)
+                    rets[(t, s)] = r
         except Exception as e:
             errors.append(f"{t}: {e}")
 

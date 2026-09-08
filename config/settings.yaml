@@ -28,3 +28,12 @@ backtest:
     window: 20
     rebalance_days: 5
     max_weight: 1.0
+
+# Estrategia de David (cruce a la baja SMA200 semanal; salida RSI armada + caida >5%)
+mag7w:
+  rsi_level: 85            # nivel de RSI(14) semanal que arma la salida (generico, David 2026-09-08)
+  rsi_level_by_asset:      # excepciones por activo
+    GLD: 87                # oro (ETF)
+    GC=F: 87               # oro (futuro)
+    SPY: 75                # S&P 500
+    QQQ: 79                # Nasdaq 100

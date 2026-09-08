@@ -14,21 +14,17 @@ Un terminal cuantitativo personal: descarga datos diarios, calcula métricas y s
 - **Señales diarias** sobre un universo de ETFs, futuros, semiconductores y Bitcoin: SPY, QQQ, GLD, GC=F, CL=F, TLT, AMD, TSM, ASML, AVGO y BTC-USD.
 - **Alertas a Telegram** solo cuando algo cambia de verdad: si una estrategia entra en largo o sale de un activo, llega un mensaje. Si no hay cambio de régimen, no hay ruido.
 - **Backtesting honesto**: las señales se ejecutan desde la vela siguiente, con costes de transacción y remuneración del cash (configurables en `config/settings.yaml`), para no inflar los resultados.
-- **Dashboard autoactualizado**: curvas de rentabilidad por estrategia vs buy & hold, ganancias YTD, Sharpe y drawdown, y las últimas señales. Se regenera cada día laborable tras el cierre de EE.UU. con una GitHub Action.
+- **Dashboard autoactualizado**: curvas de rentabilidad por estrategia vs buy & hold, ganancias YTD, Sharpe y drawdown. Se regenera cada día laborable tras el cierre de EE.UU. con una GitHub Action.
 
 ## Estrategias
 
-Siete estrategias de régimen (largo / fuera), todas sobre velas diarias:
+Tres estrategias de régimen (largo / fuera) en el panel principal:
 
 | Estrategia | Idea |
 |---|---|
-| `SMA200` | Largo por encima de la media de 200 días |
-| `EMA50` | Largo por encima de la EMA de 50 días |
-| `EMA20>EMA50` | Cruce de medias exponenciales |
-| `EMA10>EMA30` | Cruce rápido de medias exponenciales |
-| `Donchian20` | Rotura del canal de Donchian de 20 días |
-| `ROC60` | Momentum positivo a 60 días |
-| `MeanReversionZ` | Compra caídas fuertes (z-score ≤ -2.25) con tendencia de fondo alcista |
+| `SMA200W+RSI` | La estrategia propia, en semanal: compra cuando el cierre semanal cruza a la baja la SMA200; vende cuando el RSI(14) semanal supera el nivel de sobrecompra (85 genérico; oro 87, S&P 500 75, Nasdaq 79 - ver `mag7w` en `config/settings.yaml`) y luego el precio cae más de un 5% desde el máximo |
+| `ROC60` | Momentum positivo a 60 días (diario) |
+| `Donchian20` | Rotura del canal de Donchian de 20 días (diario) |
 
 `core/signals.py` incluye además un laboratorio de señales más amplio (ROC a 120/252 días, canales de Donchian de 50/100/200, filtros de volumen, RSI, ADX, ATR y dos estrategias de vol-target) para validar qué familias merecen más investigación antes de tocar nada en vivo.
 

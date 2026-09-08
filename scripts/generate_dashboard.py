@@ -18,13 +18,20 @@ sys.path.insert(0, str(ROOT))
 from core.data import history
 from core.signals import strategy_position
 from core.backtest import backtest_strategy, buy_and_hold_backtest
+from scripts.david_sma200w import david_weekly_daily_returns
 
 UNIVERSE = ["SPY", "QQQ", "GLD", "GC=F", "CL=F", "TLT", "AMD", "TSM", "ASML", "AVGO", "BTC-USD"]
-STRATEGIES = ["EMA20>EMA50", "EMA10>EMA30", "EMA50", "Donchian20", "SMA200", "ROC60", "MeanReversionZ"]
+# SMA200W+RSI = la estrategia de David (semanal): cruce a la baja de la SMA200W,
+# salida RSI(14)W armada + caida >5%. El resto son diarias del motor.
+STRATEGIES = ["SMA200W+RSI", "ROC60", "Donchian20"]
+DAVID_STRATEGY = "SMA200W+RSI"
 
 CFG = yaml.safe_load(open(ROOT / "config/settings.yaml", encoding="utf8"))
 COST = float(CFG.get("backtest", {}).get("transaction_cost", 0.001))
 CASH = float(CFG.get("backtest", {}).get("cash_rate_annual", 0.02))
+MAG7W_CFG = CFG.get("mag7w", {})
+RSI_DEFAULT = float(MAG7W_CFG.get("rsi_level", 70))
+RSI_BY_ASSET = {k: float(v) for k, v in MAG7W_CFG.get("rsi_level_by_asset", {}).items()}
 
 
 def stats(ret: pd.Series) -> dict:
@@ -43,7 +50,7 @@ def stats(ret: pd.Series) -> dict:
 
 
 def main():
-    data, positions, rets, bh_rets, closes = {}, {}, {}, {}, {}
+    data, rets, bh_rets, closes = {}, {}, {}, {}
     errors = []
     for t in UNIVERSE:
         try:
@@ -51,9 +58,15 @@ def main():
             closes[t] = df["Close"]
             bh_rets[t] = df["Close"].pct_change().fillna(0.0)
             for s in STRATEGIES:
-                r, st = backtest_strategy(df, s, cost=COST, cash_rate=CASH)
-                rets[(t, s)] = r
-                positions[(t, s)] = strategy_position(df, s)
+                if s == DAVID_STRATEGY:
+                    # historico completo para calentar la SMA200W; metricas en la ventana 10y
+                    df_full = history(t, "max", "1d", refresh=True)
+                    r_full, _ = david_weekly_daily_returns(
+                        df_full, COST, CASH, RSI_BY_ASSET.get(t, RSI_DEFAULT))
+                    rets[(t, s)] = r_full.reindex(df.index).fillna(0.0)
+                else:
+                    r, st = backtest_strategy(df, s, cost=COST, cash_rate=CASH)
+                    rets[(t, s)] = r
         except Exception as e:
             errors.append(f"{t}: {e}")
 
@@ -64,7 +77,7 @@ def main():
     GO_LIVE = "2026-09-07"  # inicio del paper trading en vivo (arranque del servicio)
     out = {"generated_at": pd.Timestamp.utcnow().isoformat(), "universe": UNIVERSE,
            "go_live": GO_LIVE,
-           "strategies": {}, "per_asset": {}, "signals": [], "errors": errors}
+           "strategies": {}, "per_asset": {}, "errors": errors}
 
     for s in STRATEGIES:
         portfolio = pd.DataFrame({t: rets[(t, s)] for t in UNIVERSE if (t, s) in rets}).mean(axis=1)
@@ -102,22 +115,9 @@ def main():
         live["bh"] = [round(float(v), 4) for v in bh_eq]
     out["live"] = live
 
-    # Latest signals: regime changes in the last 30 sessions
-    for t in UNIVERSE:
-        for s in STRATEGIES:
-            if (t, s) not in positions:
-                continue
-            pos = positions[(t, s)]
-            chg = pos.diff().fillna(0) != 0
-            for d in pos.index[chg][-30:]:
-                i = pos.index.get_loc(d)
-                out["signals"].append({
-                    "date": str(d.date()), "asset": t, "strategy": s,
-                    "side": "LONG" if int(pos.iloc[i]) else "EXIT",
-                    "price": round(float(closes[t].iloc[i]), 2),
-                })
-    out["signals"].sort(key=lambda x: x["date"], reverse=True)
-    out["signals"] = out["signals"][:60]
+    bh_all = pd.DataFrame(bh_rets).mean(axis=1)
+    bh_ytd = bh_all[bh_all.index >= f"{year}-01-01"]
+    out["bh_ytd"] = round(((1 + bh_ytd.fillna(0.0)).prod() - 1) * 100, 2) if len(bh_ytd) else 0.0
     out["dates"] = dates
     out["ytd_start"] = f"{year}-01-01"
 

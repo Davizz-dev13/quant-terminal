@@ -47,6 +47,7 @@
 <header>
   <h1>Quant Terminal</h1>
   <div class="sub" id="updated">Cargando datos...</div>
+  <div class="sub" style="margin-top:4px">SMA200W+RSI es la estrategia propia: entrada cuando el cierre semanal cruza a la baja la SMA200 semanal; salida cuando el RSI(14) semanal supera el nivel configurado (85 genérico; oro 87, S&P 500 75, Nasdaq 79) y luego el precio cae más de un 5% desde el máximo. ROC60 y Donchian20 son diarias.</div>
 </header>
 <main>
   <div class="panel">
@@ -60,7 +61,7 @@
     <h2>Validación walk-forward<span class="tag wf">OUT-OF-SAMPLE</span></h2>
     <p class="note">Cada pliego anual se evalúa solo con el pasado disponible hasta ese año. Es la referencia más honesta de robustez: mira la mediana de Sharpe por año y el % de años positivos, no el total.</p>
     <table id="wf-table">
-      <thead><tr><th>Estrategia</th><th>Años OOS</th><th>Sharpe OOS</th><th>Sharpe mediano/año</th><th>Años positivos</th><th>Retorno OOS</th><th>Max DD OOS</th></tr></thead>
+      <thead><tr><th>Estrategia</th><th>Sharpe OOS</th><th>Años positivos</th><th>Retorno OOS</th><th>Max DD OOS</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
@@ -90,19 +91,12 @@
     <div class="chart-wrap short"><canvas id="ytd-chart"></canvas></div>
   </div>
 
-  <div class="panel">
-    <h2>Últimas señales</h2>
-    <table>
-      <thead><tr><th>Fecha</th><th>Activo</th><th>Estrategia</th><th>Señal</th><th>Precio</th></tr></thead>
-      <tbody id="signals-body"></tbody>
-    </table>
-  </div>
 </main>
 <footer>Datos diarios vía yfinance. Backtest y walk-forward con costes de transacción y rentabilidad del cash según <code>config/settings.yaml</code>. El paper trading en vivo aplica las posiciones del motor desde el go-live y se reconcilia con la hoja "Quant Tracker". Rentabilidades pasadas, simuladas o no, no garantizan resultados futuros.</footer>
 <script>
 const COLORS = ['#58a6ff','#3fb950','#f778ba','#d29922','#a5d6ff','#ff9b6a','#bc8cff','#7ee787'];
 let DATA = null, WF = null, mainChart = null, ytdChart = null, liveChart = null;
-let state = { tf: 'ALL', asset: '' };
+let state = { tf: 'ALL', asset: 'BTC-USD' };
 
 const goLivePlugin = {
   id: 'goLiveLine',
@@ -215,14 +209,14 @@ function renderMain() {
 }
 
 function renderYtd() {
-  const names = Object.keys(DATA.strategies);
-  const vals = names.map(n => DATA.strategies[n].ytd_return);
+  const names = Object.keys(DATA.strategies).concat(['Buy & Hold']);
+  const vals = Object.values(DATA.strategies).map(s => s.ytd_return).concat([DATA.bh_ytd]);
   if (ytdChart) ytdChart.destroy();
   ytdChart = new Chart(document.getElementById('ytd-chart'), {
     type: 'bar',
     data: { labels: names, datasets: [{ data: vals,
-      backgroundColor: vals.map(v => v >= 0 ? 'rgba(63,185,80,.55)' : 'rgba(248,81,73,.55)'),
-      borderColor: vals.map(v => v >= 0 ? '#3fb950' : '#f85149'), borderWidth: 1 }] },
+      backgroundColor: vals.map((v,i) => i === vals.length-1 ? 'rgba(110,118,129,.55)' : (v >= 0 ? 'rgba(63,185,80,.55)' : 'rgba(248,81,73,.55)')),
+      borderColor: vals.map((v,i) => i === vals.length-1 ? '#6e7681' : (v >= 0 ? '#3fb950' : '#f85149')), borderWidth: 1 }] },
     options: { responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: { x: { ticks: { color: '#8b949e' }, grid: { display: false } },
@@ -238,13 +232,13 @@ function renderWalkForward() {
     const head = document.createElement('tr');
     head.className = 'fold-head';
     head.innerHTML = `<td><strong>${name}</strong> <span style="color:var(--muted)">▸</span></td>
-      <td>${a.n_folds}</td><td>${fmt(a.oos_sharpe)}</td><td>${fmt(a.median_fold_sharpe)}</td>
+      <td>${fmt(a.oos_sharpe)}</td>
       <td>${fmt(a.pct_folds_positive, '%')}</td>
       <td class="${a.oos_total_return >= 0 ? 'pos' : 'neg'}">${fmt(a.oos_total_return, '%')}</td>
       <td class="neg">${fmt(a.oos_max_dd, '%')}</td>`;
     const detail = document.createElement('tr');
     detail.style.display = 'none';
-    detail.innerHTML = `<td colspan="7"><table style="font-size:12px">
+    detail.innerHTML = `<td colspan="5"><table style="font-size:12px">
       <thead><tr><th>Año</th><th>Sharpe</th><th>Rentabilidad</th><th>Max DD</th></tr></thead>
       <tbody>${s.folds.map(f => `<tr><td>${f.year}</td><td>${fmt(f.sharpe)}</td>
         <td class="${f.return_pct >= 0 ? 'pos' : 'neg'}">${f.return_pct}%</td>
@@ -252,13 +246,6 @@ function renderWalkForward() {
     head.onclick = () => { detail.style.display = detail.style.display === 'none' ? '' : 'none'; };
     body.appendChild(head); body.appendChild(detail);
   });
-}
-
-function renderSignals() {
-  document.getElementById('signals-body').innerHTML = DATA.signals.slice(0, 25).map(s =>
-    `<tr><td>${s.date}</td><td>${s.asset}</td><td>${s.strategy}</td>
-     <td><span class="badge ${s.side === 'LONG' ? 'long' : 'exit'}">${s.side}</span></td>
-     <td>${s.price}</td></tr>`).join('');
 }
 
 Promise.all([fetch('data.json').then(r => r.json()), fetch('walkforward.json').then(r => r.json())])
@@ -269,12 +256,13 @@ Promise.all([fetch('data.json').then(r => r.json()), fetch('walkforward.json').t
     ' · ' + d.universe.length + ' activos · ' + Object.keys(d.strategies).length + ' estrategias · go-live ' + d.go_live;
   const sel = document.getElementById('asset-select');
   d.universe.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o); });
+  sel.value = 'BTC-USD';
   sel.onchange = () => { state.asset = sel.value; renderMain(); };
   document.querySelectorAll('#tf-buttons button').forEach(b => b.onclick = () => {
     document.querySelectorAll('#tf-buttons button').forEach(x => x.classList.remove('active'));
     b.classList.add('active'); state.tf = b.dataset.tf; renderMain();
   });
-  renderLive(); renderWalkForward(); renderCards(); renderMain(); renderYtd(); renderSignals();
+  renderLive(); renderWalkForward(); renderCards(); renderMain(); renderYtd();
 }).catch(e => {
   document.getElementById('updated').textContent = 'No se pudieron cargar los datos (' + e + ')';
 });
