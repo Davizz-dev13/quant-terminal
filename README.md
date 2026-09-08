@@ -6,9 +6,8 @@
 
 Un terminal cuantitativo personal: descarga datos diarios, calcula métricas y señales de trading sistemático, manda alertas a Telegram y lleva el seguimiento de cada estrategia en un dashboard público que se actualiza solo cada noche.
 
-**[Ver el dashboard en vivo](https://davizz-dev13.github.io/quant-terminal/)** · **[Variante Mag7 SMA](https://davizz-dev13.github.io/quant-terminal/mag7/)**
+**[Ver el dashboard en vivo](https://davizz-dev13.github.io/quant-terminal/)**
 
-Hay una variante del panel centrada solo en las siete magníficas (AAPL, MSFT, NVDA, AMZN, META, GOOGL, TSLA) con dos estrategias de cruce (SMA200 y SMA50): [`/mag7`](https://davizz-dev13.github.io/quant-terminal/mag7/). Misma disciplina: vivo, walk-forward y backtest separados.
 
 ## Qué hace
 
@@ -60,6 +59,15 @@ python scripts/walk_forward.py
 `validate_signals.py` descarga 10 años de datos, aplica costes y escribe `data/validation_results.csv`. Un Sharpe histórico positivo no basta: mira el comportamiento por activo, subperiodo y costes antes de fiarte de una señal.
 
 `walk_forward.py` hace la validación seria: evalúa cada estrategia en pliegues anuales sucesivos usando solo el pasado disponible hasta cada año (out-of-sample) y reporta Sharpe mediano por año, porcentaje de años positivos y agregados OOS. Es lo más parecido a haberla operado de verdad.
+
+
+### Estrategia Mag7 + Oro + BTC (SMA200 semanal)
+
+Apartado propio en el dashboard: **[ver](https://davizz-dev13.github.io/quant-terminal/mag7/)**. Estrategia contrarian en timeframe semanal sobre las 7 magníficas, GLD y BTC-USD:
+
+- **Entrada**: el cierre semanal cruza a la baja la SMA200 semanal.
+- **Salida**: cuando el RSI(14) semanal supera 70 la posición queda armada; se vende al caer más de un 5% desde el máximo cierre posterior.
+- Señal al cierre de la semana, ejecutable la semana siguiente. Las alertas nocturnas de Telegram también cubren estas señales semanales.
 
 El dashboard separa siempre tres cosas: el **paper trading en vivo** (track record real desde el go-live, el número que importa), la **validación walk-forward** (robustez histórica) y el **backtest** (referencia, claramente etiquetado).
 
