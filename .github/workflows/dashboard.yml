@@ -20,10 +20,11 @@ jobs:
       - run: pip install pandas numpy yfinance pyarrow pyyaml
       - run: python scripts/generate_dashboard.py
       - run: python scripts/walk_forward.py
+      - run: python scripts/generate_mag7.py
       - name: Commit data.json si hay cambios
         run: |
           git config user.name "quant-terminal-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add docs/data.json docs/walkforward.json
+          git add docs/data.json docs/walkforward.json docs/mag7/mag7.json
           git diff --cached --quiet || git commit -m "Datos del dashboard: $(date -u +%Y-%m-%d)"
           git push

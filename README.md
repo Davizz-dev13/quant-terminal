@@ -6,7 +6,9 @@
 
 Un terminal cuantitativo personal: descarga datos diarios, calcula métricas y señales de trading sistemático, manda alertas a Telegram y lleva el seguimiento de cada estrategia en un dashboard público que se actualiza solo cada noche.
 
-**[Ver el dashboard en vivo](https://davizz-dev13.github.io/quant-terminal/)**
+**[Ver el dashboard en vivo](https://davizz-dev13.github.io/quant-terminal/)** · **[Variante Mag7 SMA](https://davizz-dev13.github.io/quant-terminal/mag7/)**
+
+Hay una variante del panel centrada solo en las siete magníficas (AAPL, MSFT, NVDA, AMZN, META, GOOGL, TSLA) con dos estrategias de cruce (SMA200 y SMA50): [`/mag7`](https://davizz-dev13.github.io/quant-terminal/mag7/). Misma disciplina: vivo, walk-forward y backtest separados.
 
 ## Qué hace
 
