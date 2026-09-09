@@ -57,6 +57,14 @@ python scripts/walk_forward.py
 `walk_forward.py` hace la validación seria: evalúa cada estrategia en pliegues anuales sucesivos usando solo el pasado disponible hasta cada año (out-of-sample) y reporta Sharpe mediano por año, porcentaje de años positivos y agregados OOS. Es lo más parecido a haberla operado de verdad.
 
 
+### Estrategia #4: Rotación Semis (roc126 top2 vol-escalada)
+
+Apartado propio: **[ver](https://davizz-dev13.github.io/quant-terminal/semis/)**. Rotación diaria sobre NVDA, AVGO, AMD, TSM y ASML:
+
+- **Selección**: los 2 semis con mayor ROC de 126 días, solo si su ROC es positivo; si ninguno lo es, 100% cash.
+- **Dimensionado**: reparto equitativo entre las patas; cada pata escalada por min(1, 0.25/vol20).
+- Señal al cierre, ejecutable al día siguiente. Coste 0.1% por cambio de pata. Las alertas nocturnas avisan cuando entra o sale una pata.
+
 ### Estrategia Mag7 + Oro + BTC (SMA200 semanal)
 
 Apartado propio en el dashboard: **[ver](https://davizz-dev13.github.io/quant-terminal/mag7/)**. Estrategia contrarian en timeframe semanal sobre las 7 magníficas, GLD y BTC-USD:

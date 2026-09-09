@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rotación Semis - roc126 top2 vol-escalada</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --border:#30363d; --fg:#e6edf3; --mut:#8b949e; --acc:#58a6ff; --green:#3fb950; --red:#f85149; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--fg); }
+  header { padding:24px 28px 8px; }
+  h1 { margin:0 0 4px; font-size:22px; }
+  .sub { color:var(--mut); font-size:13px; line-height:1.5; max-width:900px; }
+  main { padding:8px 28px 40px; max-width:1200px; }
+  .panel { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px 18px; margin-top:18px; }
+  .panel h2 { margin:0 0 10px; font-size:16px; }
+  .badge { display:inline-block; font-size:11px; padding:2px 8px; border-radius:10px; border:1px solid var(--border); color:var(--mut); margin-left:8px; vertical-align:middle; }
+  .badge.live { color:var(--green); border-color:var(--green); }
+  .badge.ref { color:#d29922; border-color:#d29922; }
+  table { border-collapse:collapse; width:100%; font-size:12.5px; }
+  th, td { padding:5px 8px; text-align:right; border-bottom:1px solid var(--border); white-space:nowrap; }
+  th { color:var(--mut); font-weight:600; }
+  th:first-child, td:first-child { text-align:left; }
+  .pos { color:var(--green); } .neg { color:var(--red); }
+  .kpis { display:flex; gap:18px; flex-wrap:wrap; font-size:13px; margin:4px 0 12px; }
+  .kpi b { font-size:17px; display:block; }
+  .chartbox { height:280px; margin-bottom:8px; }
+  footer { color:var(--mut); font-size:11.5px; padding:20px 28px 40px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Rotaci&oacute;n Semis &middot; roc126 top2 vol-escalada</h1>
+  <div class="sub" id="ruletext"></div>
+</header>
+<main>
+  <div class="panel">
+    <h2>Live (paper) <span class="badge live" id="live-badge"></span></h2>
+    <div class="kpis" id="live-kpis"></div>
+    <table id="hold-table"><thead><tr><th>Pata</th><th>Peso</th><th>Precio</th></tr></thead><tbody></tbody></table>
+    <div class="chartbox" id="live-wrap" style="margin-top:12px"><canvas id="live-chart"></canvas></div>
+    <div class="sub" id="live-empty" style="display:none">El seguimiento en vivo arranca con el primer cierre tras el go-live - vuelve ma&ntilde;ana.</div>
+  </div>
+
+  <div class="panel">
+    <h2>Walk-forward anual (out-of-sample) <span class="badge">se&ntilde;al ejecutable al d&iacute;a siguiente</span></h2>
+    <div id="wf-note" class="sub" style="margin-bottom:8px"></div>
+    <table id="wf-table"><thead><tr><th>A&ntilde;o</th><th>Retorno</th><th>B&amp;H semis</th><th>Sharpe</th><th>Max DD</th></tr></thead><tbody></tbody></table>
+  </div>
+
+  <div class="panel">
+    <h2>Backtest 10 a&ntilde;os (referencia) <span class="badge ref">no garantiza resultados futuros</span></h2>
+    <div class="kpis" id="bt-kpis"></div>
+    <div class="chartbox"><canvas id="bt-chart"></canvas></div>
+  </div>
+
+  <div class="panel">
+    <h2>Registro de rotaciones <span class="badge">cambios de patas, 10 a&ntilde;os</span></h2>
+    <table id="rot-table"><thead><tr><th>Fecha</th><th>Patas mantenidas</th><th>Pesos</th></tr></thead><tbody></tbody></table>
+  </div>
+</main>
+<footer id="foot"></footer>
+<script>
+const fmtPct = v => (v==null?'-':(v>0?'+':'')+Number(v).toFixed(2)+'%');
+const cls = v => v==null?'':(v>=0?'pos':'neg');
+fetch('semis.json').then(r=>r.json()).then(d=>{
+  document.getElementById('ruletext').innerHTML =
+    'Universo: '+d.universe.join(', ')+'.<br>Selecci&oacute;n: '+d.rules.selection+'.<br>Dimensionado: '+d.rules.sizing+'.<br>'+d.rules.execution+'.';
+  document.getElementById('live-badge').textContent = 'desde el 9 sep 2026';
+  document.getElementById('foot').textContent = 'Generado: '+d.generated_at+' · Coste por cambio de pata: '+(d.rules.cost*100).toFixed(1)+'% · Cash remunerado al '+(d.rules.cash_rate*100).toFixed(0)+'% anual';
+
+  const ht = document.querySelector('#hold-table tbody');
+  if (d.holdings.length === 0) {
+    ht.innerHTML = '<tr><td colspan="3">100% cash (ning&uacute;n ROC126 positivo)</td></tr>';
+  } else {
+    d.holdings.forEach(h=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+h.asset+'</td><td>'+(h.weight*100).toFixed(1)+'%</td><td>'+h.price+'</td>';
+      ht.appendChild(tr);
+    });
+  }
+  document.getElementById('live-kpis').innerHTML =
+    '<div class="kpi"><b>'+(d.invested*100).toFixed(0)+'%</b>invertido</div>'+
+    '<div class="kpi"><b>'+d.holdings.length+'</b>patas</div>';
+
+  const chartOpts = (ytitle) => ({maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+    scales:{x:{type:'time',time:{unit:'year'},ticks:{color:'#8b949e',maxTicksLimit:9},grid:{color:'#21262d'}},
+            y:{type:'logarithmic',ticks:{color:'#8b949e'},grid:{color:'#21262d'},title:{display:true,text:ytitle,color:'#8b949e'}}},
+    plugins:{legend:{labels:{color:'#8b949e',boxWidth:10,font:{size:10}}}}});
+
+  if (d.live.dates.length > 0) {
+    document.getElementById('live-empty').style.display='none';
+    new Chart(document.getElementById('live-chart'), {data:{datasets:[
+      {type:'line', label:'Rotaci\u00f3n Semis', data:d.live.dates.map((x,i)=>({x,y:d.live.equity[i]})), borderColor:'#58a6ff', borderWidth:1.6, pointRadius:0},
+      {type:'line', label:'B&H semis', data:d.live.dates.map((x,i)=>({x,y:d.live.bh[i]})), borderColor:'#8b949e', borderWidth:1.3, borderDash:[4,3], pointRadius:0},
+    ]}, options:chartOpts('Crecimiento de 1\u20ac desde el go-live')});
+  } else {
+    document.getElementById('live-wrap').style.display='none';
+    document.getElementById('live-empty').style.display='block';
+  }
+
+  const tb=document.querySelector('#wf-table tbody');
+  d.folds.forEach(f=>{
+    const tr=document.createElement('tr');
+    const bh=d.bh_folds[f.year];
+    tr.innerHTML='<td>'+f.year+'</td><td class="'+cls(f.return_pct)+'">'+fmtPct(f.return_pct)+'</td><td class="'+cls(bh)+'">'+fmtPct(bh)+'</td><td>'+(f.sharpe==null?'-':f.sharpe)+'</td><td class="neg">'+f.max_dd+'%</td>';
+    tb.appendChild(tr);
+  });
+  document.getElementById('wf-note').textContent = 'Pliegues anuales de la estrategia sobre los 5 semis. % a\u00f1os positivos: '+d.pct_folds_positive+'%.';
+
+  const st=d.stats, bh=d.bh_stats;
+  document.getElementById('bt-kpis').innerHTML =
+    '<div class="kpi"><b>'+fmtPct(st.total_return)+'</b>retorno total</div>'+
+    '<div class="kpi"><b>'+fmtPct(bh.total_return)+'</b>B&amp;H</div>'+
+    '<div class="kpi"><b>'+st.sharpe+'</b>Sharpe (B&amp;H '+(bh.sharpe==null?'-':bh.sharpe)+')</div>'+
+    '<div class="kpi"><b>'+st.max_dd+'%</b>Max DD (B&amp;H '+bh.max_dd+'%)</div>'+
+    '<div class="kpi"><b>'+fmtPct(st.ytd_return)+'</b>YTD (B&amp;H '+fmtPct(bh.ytd_return)+')</div>';
+  new Chart(document.getElementById('bt-chart'), {data:{datasets:[
+    {type:'line', label:'Rotaci\u00f3n Semis', data:d.dates.map((x,i)=>({x,y:d.equity[i]})), borderColor:'#58a6ff', borderWidth:1.6, pointRadius:0},
+    {type:'line', label:'B&H semis (equiponderado)', data:d.dates.map((x,i)=>({x,y:d.bh_equity[i]})), borderColor:'#8b949e', borderWidth:1.3, borderDash:[4,3], pointRadius:0},
+  ]}, options:chartOpts('Crecimiento de 1\u20ac (log)')});
+
+  const rt=document.querySelector('#rot-table tbody');
+  d.rotation_log.slice().reverse().forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+r.date+'</td><td>'+(r.legs.length?r.legs.join(' + '):'cash')+'</td><td>'+r.legs.map(t=>t+' '+(r.weights[t]*100).toFixed(1)+'%').join(' · ')+'</td>';
+    rt.appendChild(tr);
+  });
+});
+</script>
+</body>
+</html>
