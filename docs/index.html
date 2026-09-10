@@ -24,6 +24,11 @@
   .card .row { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:4px; }
   .pos { color:#3fb950; } .neg { color:#f85149; }
   .panel { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:26px; }
+  .sect { font-size:17px; margin:30px 0 10px; padding-top:22px; border-top:1px solid var(--border); }
+  .kpis { display:flex; gap:18px; flex-wrap:wrap; font-size:13px; color:var(--muted); margin:8px 0 14px; }
+  .kpi b { font-size:17px; display:block; color:var(--text); }
+  .tf-mini { margin-bottom:10px; }
+  a { color:var(--accent); }
   .panel h2 { margin:0 0 4px; font-size:17px; }
   .panel .note { color:var(--muted); font-size:12px; margin:0 0 12px; }
   .controls { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; align-items:center; }
@@ -57,15 +62,47 @@
     <div class="empty" id="live-empty" style="display:none">El seguimiento en vivo arranca con el primer cierre tras el go-live - vuelve mañana.</div>
   </div>
 
+  <h2 class="sect">Análisis de estrategia para semiconductores</h2>
   <div class="panel">
-    <h2>Validación walk-forward</h2>
-    <table id="wf-table">
-      <thead><tr><th>Estrategia</th><th>Sharpe OOS</th><th>Años positivos</th><th>Retorno OOS</th><th>Max DD OOS</th></tr></thead>
-      <tbody></tbody>
-    </table>
+    <p class="note">Rotación Semis-8 v1 (roc126 top2 vol-escalada) sobre NVDA, AVGO, AMD, TSM y ASML: las 2 con mejor ROC de 126 días si es positivo, escaladas por volatilidad; si ninguna tira, 100% cash. <a href="semis/">Apartado completo</a>.</p>
+    <div class="kpis">
+      <div class="kpi"><b>1.42</b>Sharpe OOS</div>
+      <div class="kpi"><b>89%</b>años positivos</div>
+      <div class="kpi"><b>+2005%</b>retorno OOS (10a)</div>
+      <div class="kpi"><b>-25%</b>Max DD OOS</div>
+    </div>
+    <div class="controls tf-mini" data-chart="semis">
+      <button data-tf="1M">1M</button>
+      <button data-tf="3M">3M</button>
+      <button data-tf="6M">6M</button>
+      <button data-tf="YTD">YTD</button>
+      <button data-tf="1Y">1A</button>
+      <button data-tf="ALL" class="active">Todo</button>
+    </div>
+    <div class="chart-wrap"><canvas id="semis-chart"></canvas></div>
   </div>
 
-  <h2 style="font-size:15px;color:var(--muted);margin:26px 0 4px">BACKTEST (referencia, simulación sobre histórico)</h2>
+  <h2 class="sect">Análisis de estrategia para MSCI World</h2>
+  <div class="panel">
+    <p class="note">MomVol sobre URTH (proxy del MSCI World): largo cuando el ROC de 126 días es positivo, peso min(1, 0.15/vol20); si no, cash. Ojo: URTH solo tiene datos desde 2012, ventana más corta que el resto del terminal.</p>
+    <div class="kpis">
+      <div class="kpi"><b>1.11</b>Sharpe OOS</div>
+      <div class="kpi"><b>12.5%</b>CAGR OOS</div>
+      <div class="kpi"><b>-14%</b>Max DD OOS</div>
+      <div class="kpi"><b>0.93 / -26%</b>B&amp;H Sharpe / DD</div>
+    </div>
+    <div class="controls tf-mini" data-chart="msci">
+      <button data-tf="1M">1M</button>
+      <button data-tf="3M">3M</button>
+      <button data-tf="6M">6M</button>
+      <button data-tf="YTD">YTD</button>
+      <button data-tf="1Y">1A</button>
+      <button data-tf="ALL" class="active">Todo</button>
+    </div>
+    <div class="chart-wrap"><canvas id="msci-chart"></canvas></div>
+  </div>
+
+  <h2 class="sect">Análisis de estrategias para BTC-USD</h2>
   <div class="cards" id="cards"></div>
 
   <div class="panel">
@@ -94,7 +131,7 @@
 <footer>Datos diarios vía yfinance. Backtest y walk-forward con costes de transacción y rentabilidad del cash según <code>config/settings.yaml</code>. El paper trading en vivo aplica las posiciones del motor desde el go-live y se reconcilia con la hoja "Quant Tracker". Rentabilidades pasadas, simuladas o no, no garantizan resultados futuros.</footer>
 <script>
 const COLORS = ['#58a6ff','#3fb950','#f778ba','#d29922','#a5d6ff','#ff9b6a','#bc8cff','#7ee787'];
-let DATA = null, WF = null, SEMIS = null, mainChart = null, ytdChart = null, liveChart = null;
+let DATA = null, SEMIS = null, MSCI = null, mainChart = null, ytdChart = null, liveChart = null, sectCharts = {}, tfSect = { semis: 'ALL', msci: 'ALL' };
 let state = { tf: 'ALL', asset: 'BTC-USD' };
 
 const goLivePlugin = {
@@ -177,19 +214,9 @@ function renorm(arr, i0) {
 }
 
 function renderMain() {
-  let labels, datasets = [], golive = DATA.go_live;
-  if (state.asset === 'Semis-8' && SEMIS) {
-    const st = tfStart(state.tf);
-    let i0s = SEMIS.dates.findIndex(d => d >= st); if (i0s < 0) i0s = 0;
-    labels = SEMIS.dates.slice(i0s);
-    golive = SEMIS.go_live || golive;
-    datasets.push({ label: 'Rotación Semis-8 v1', data: renorm(SEMIS.equity, i0s), borderColor: '#bc8cff',
-      borderWidth: 1.8, pointRadius: 0, tension: 0.15 });
-    datasets.push({ label: 'Buy & Hold cesta semis', data: renorm(SEMIS.bh_equity, i0s), borderColor: '#6e7681',
-      borderWidth: 1.2, borderDash: [5,4], pointRadius: 0, tension: 0.15 });
-  } else {
   const i0 = sliceFrom(tfStart(state.tf));
-  labels = DATA.dates.slice(i0);
+  const labels = DATA.dates.slice(i0);
+  let datasets = [];
   if (!state.asset) {
     Object.entries(DATA.strategies).forEach(([name, s], idx) => {
       datasets.push({ label: name, data: renorm(s.equity, i0), borderColor: COLORS[idx % COLORS.length],
@@ -208,7 +235,6 @@ function renderMain() {
     if (anyS) datasets.push({ label: 'Buy & Hold ' + state.asset, data: renorm(anyS.bh_equity, i0),
       borderColor: '#6e7681', borderWidth: 1.2, borderDash: [5,4], pointRadius: 0, tension: 0.15 });
   }
-  }
   if (mainChart) mainChart.destroy();
   mainChart = new Chart(document.getElementById('main-chart'), {
     type: 'line', data: { labels, datasets }, plugins: [goLivePlugin],
@@ -217,7 +243,6 @@ function renderMain() {
       scales: { x: { ticks: { color: '#8b949e', maxTicksLimit: 10 }, grid: { color: '#21262d' } },
                 y: { ticks: { color: '#8b949e' }, grid: { color: '#21262d' }, title: { display: true, text: 'Crecimiento de 1€', color: '#8b949e' } } } }
   });
-  mainChart.$golive = golive;
 }
 
 function renderYtd() {
@@ -236,53 +261,65 @@ function renderYtd() {
   });
 }
 
-function renderWalkForward() {
-  const body = document.querySelector('#wf-table tbody');
-  body.innerHTML = '';
-  Object.entries(WF.strategies).forEach(([name, s]) => {
-    const a = s.agg;
-    const head = document.createElement('tr');
-    head.className = 'fold-head';
-    head.innerHTML = `<td><strong>${name}</strong> <span style="color:var(--muted)">▸</span></td>
-      <td>${fmt(a.oos_sharpe)}</td>
-      <td>${fmt(a.pct_folds_positive, '%')}</td>
-      <td class="${a.oos_total_return >= 0 ? 'pos' : 'neg'}">${fmt(a.oos_total_return, '%')}</td>
-      <td class="neg">${fmt(a.oos_max_dd, '%')}</td>`;
-    const detail = document.createElement('tr');
-    detail.style.display = 'none';
-    detail.innerHTML = `<td colspan="5"><table style="font-size:12px">
-      <thead><tr><th>Año</th><th>Sharpe</th><th>Rentabilidad</th><th>Max DD</th></tr></thead>
-      <tbody>${s.folds.map(f => `<tr><td>${f.year}</td><td>${fmt(f.sharpe)}</td>
-        <td class="${f.return_pct >= 0 ? 'pos' : 'neg'}">${f.return_pct}%</td>
-        <td class="neg">${f.max_dd}%</td></tr>`).join('')}</tbody></table></td>`;
-    head.onclick = () => { detail.style.display = detail.style.display === 'none' ? '' : 'none'; };
-    body.appendChild(head); body.appendChild(detail);
-  });
-  // Rotacion Semis-8 v1: numeros OOS validados por investigacion (2026-09-10), ventana 2018-2026
-  const semis = document.createElement('tr');
-  semis.className = 'fold-head';
-  semis.innerHTML = `<td><strong><a href="semis/" style="color:inherit">Rotación Semis-8 v1</a></strong></td>
-    <td>1.42</td><td>89%</td><td class="pos">2005.41%</td><td class="neg">-25%</td>`;
-  body.appendChild(semis);
+function eqOpts(title) {
+  return { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { labels: { color: '#8b949e', boxWidth: 12 } } },
+    scales: { x: { ticks: { color: '#8b949e', maxTicksLimit: 10 }, grid: { color: '#21262d' } },
+              y: { ticks: { color: '#8b949e' }, grid: { color: '#21262d' }, title: { display: true, text: title, color: '#8b949e' } } } };
+}
+function sliceDates(dates, tf) { const st = tfStart(tf); const i = dates.findIndex(d => d >= st); return i < 0 ? 0 : i; }
+
+function renderSemisChart() {
+  if (!SEMIS) return;
+  const i0 = sliceDates(SEMIS.dates, tfSect.semis);
+  if (sectCharts.semis) sectCharts.semis.destroy();
+  sectCharts.semis = new Chart(document.getElementById('semis-chart'), {
+    type: 'line', plugins: [goLivePlugin],
+    data: { labels: SEMIS.dates.slice(i0), datasets: [
+      { label: 'Rotación Semis-8 v1', data: renorm(SEMIS.equity, i0), borderColor: '#bc8cff', borderWidth: 1.8, pointRadius: 0, tension: 0.15 },
+      { label: 'Buy & Hold cesta semis', data: renorm(SEMIS.bh_equity, i0), borderColor: '#6e7681', borderWidth: 1.2, borderDash: [5,4], pointRadius: 0, tension: 0.15 }]},
+    options: eqOpts('Crecimiento de 1€') });
+  sectCharts.semis.$golive = SEMIS.go_live;
 }
 
-Promise.all([fetch('data.json').then(r => r.json()), fetch('walkforward.json').then(r => r.json()),
-  fetch('semis/semis.json').then(r => r.json()).catch(() => null)])
-.then(([d, wf, sm]) => {
-  DATA = d; WF = wf; SEMIS = sm;
+function renderMsciChart() {
+  if (!MSCI) return;
+  const i0 = sliceDates(MSCI.dates, tfSect.msci);
+  if (sectCharts.msci) sectCharts.msci.destroy();
+  sectCharts.msci = new Chart(document.getElementById('msci-chart'), {
+    type: 'line', plugins: [goLivePlugin],
+    data: { labels: MSCI.dates.slice(i0), datasets: [
+      { label: 'MomVol MSCI World', data: renorm(MSCI.equity, i0), borderColor: '#d29922', borderWidth: 1.8, pointRadius: 0, tension: 0.15 },
+      { label: 'Buy & Hold MSCI World (URTH)', data: renorm(MSCI.bh_equity, i0), borderColor: '#6e7681', borderWidth: 1.2, borderDash: [5,4], pointRadius: 0, tension: 0.15 }]},
+    options: eqOpts('Crecimiento de 1€') });
+  sectCharts.msci.$golive = MSCI.go_live;
+}
+
+Promise.all([fetch('data.json').then(r => r.json()),
+  fetch('semis/semis.json').then(r => r.json()).catch(() => null),
+  fetch('msci/msci.json').then(r => r.json()).catch(() => null)])
+.then(([d, sm, ms]) => {
+  DATA = d; SEMIS = sm; MSCI = ms;
   document.getElementById('updated').textContent =
     'Actualizado: ' + new Date(d.generated_at).toLocaleString('es-ES') +
     ' · ' + d.universe.length + ' activos · ' + Object.keys(d.strategies).length + ' estrategias · go-live ' + d.go_live;
   const sel = document.getElementById('asset-select');
   d.universe.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o); });
-  if (SEMIS) { const os = document.createElement('option'); os.value = 'Semis-8'; os.textContent = 'Semis-8 (cesta)'; sel.appendChild(os); }
   sel.value = 'BTC-USD';
   sel.onchange = () => { state.asset = sel.value; renderMain(); };
   document.querySelectorAll('#tf-buttons button').forEach(b => b.onclick = () => {
     document.querySelectorAll('#tf-buttons button').forEach(x => x.classList.remove('active'));
     b.classList.add('active'); state.tf = b.dataset.tf; renderMain();
   });
-  renderLive(); renderWalkForward(); renderCards(); renderMain(); renderYtd();
+  document.querySelectorAll('.tf-mini').forEach(row => {
+    row.querySelectorAll('button').forEach(b => b.onclick = () => {
+      row.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      tfSect[row.dataset.chart] = b.dataset.tf;
+      (row.dataset.chart === 'semis' ? renderSemisChart : renderMsciChart)();
+    });
+  });
+  renderLive(); renderCards(); renderMain(); renderYtd(); renderSemisChart(); renderMsciChart();
 }).catch(e => {
   document.getElementById('updated').textContent = 'No se pudieron cargar los datos (' + e + ')';
 });
