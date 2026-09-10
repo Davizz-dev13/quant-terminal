@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Quant Terminal - Dashboard</title>
+<title>Sharpe Lab - Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <style>
   :root { --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --live:#3fb950; }
@@ -31,6 +31,9 @@
   a { color:var(--accent); }
   .panel h2 { margin:0 0 4px; font-size:17px; }
   .panel .note { color:var(--muted); font-size:12px; margin:0 0 12px; }
+  .live-list { color:var(--muted); font-size:12.5px; margin:0 0 14px; padding-left:18px; }
+  .live-list li { margin:3px 0; }
+  .live-list b { color:var(--text); font-weight:600; }
   .controls { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; align-items:center; }
   .controls button, .controls select { background:#21262d; color:var(--text); border:1px solid var(--border); border-radius:6px; padding:6px 12px; font-size:13px; cursor:pointer; }
   .controls button.active { background:var(--accent); color:#0d1117; border-color:var(--accent); font-weight:600; }
@@ -50,14 +53,21 @@
 </head>
 <body>
 <header>
-  <h1>Quant Terminal</h1>
+  <h1>Sharpe Lab</h1>
   <div class="sub" id="updated">Cargando datos...</div>
   <div class="sub" style="margin-top:4px">SMA200W+RSI es la estrategia propia: entrada cuando el cierre semanal cruza a la baja la SMA200 semanal; salida cuando el RSI(14) semanal supera el nivel configurado (85 genérico; oro 87, S&P 500 75, Nasdaq 79) y luego el precio cae más de un 5% desde el máximo. ROC60 y Donchian20 son diarias.</div>
 </header>
 <main>
   <div class="panel">
     <h2>Paper trading en vivo<span class="tag lv">TRACK RECORD REAL</span></h2>
-    <p class="note" id="live-note">Posiciones en papel siguiendo las señales del sistema, desde el arranque del servicio. Esto es lo que hay que vigilar: es el único resultado no simulado.</p>
+    <p class="note" id="live-note">Dinero ficticio siguiendo en tiempo real las señales que genera el motor cada noche. Nada de backtest ni simulación: cada día se registra la posición (largo o cash) y la rentabilidad acumulada desde el go-live, comparada con buy &amp; hold, y todo se reconcilia con la hoja "Quant Tracker". Es el único resultado que cuenta: real, fuera de muestra y sin retoques.</p>
+    <p class="note" style="margin-bottom:6px"><b style="color:var(--text)">Estrategias en seguimiento ahora mismo:</b></p>
+    <ul class="live-list">
+      <li><b>BTC-USD</b> - SMA200W+RSI, ROC60 y Donchian20 (el gráfico de abajo) · go-live 7 sep 2026</li>
+      <li><b>Rotación Semis-8</b> sobre NVDA, AVGO, AMD, TSM y ASML (<a href="semis/">apartado completo</a>) · go-live 9 sep 2026</li>
+      <li><b>SMA200W+RSI semanal Mag7</b> (<a href="mag7/">apartado completo</a>) · go-live 8 sep 2026</li>
+      <li><b>MomVol MSCI World</b> sobre URTH (sección de abajo) · go-live 10 sep 2026</li>
+    </ul>
     <div class="chart-wrap short" id="live-wrap"><canvas id="live-chart"></canvas></div>
     <div class="empty" id="live-empty" style="display:none">El seguimiento en vivo arranca con el primer cierre tras el go-live - vuelve mañana.</div>
   </div>
@@ -84,7 +94,7 @@
 
   <h2 class="sect">Análisis de estrategia para MSCI World</h2>
   <div class="panel">
-    <p class="note">MomVol sobre URTH (proxy del MSCI World): largo cuando el ROC de 126 días es positivo, peso min(1, 0.15/vol20); si no, cash. Ojo: URTH solo tiene datos desde 2012, ventana más corta que el resto del terminal.</p>
+    <p class="note">MomVol sobre URTH (proxy del MSCI World): largo cuando el ROC de 126 días es positivo, peso min(1, 0.15/vol20); si no, cash. Ojo: URTH solo tiene datos desde 2012, ventana más corta que el resto de estrategias.</p>
     <div class="kpis">
       <div class="kpi"><b>1.11</b>Sharpe OOS</div>
       <div class="kpi"><b>12.5%</b>CAGR OOS</div>
