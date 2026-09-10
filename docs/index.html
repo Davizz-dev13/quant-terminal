@@ -6,51 +6,96 @@
 <title>David Gallardo</title>
 <meta name="description" content="David Gallardo - Ingeniería Informática UC3M. Arquitectura de bajo nivel, sistemas LLM y finanzas cuantitativas. Constructor de Sharpe Lab.">
 <style>
-  :root { --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; }
+  :root { --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#e6edf3; --body:#c9d1d9; --muted:#8b949e; --accent:#58a6ff; }
   * { box-sizing:border-box; }
-  body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font-family:-apple-system,'Segoe UI',Roboto,sans-serif; }
-  main { max-width:640px; margin:0 auto; padding:72px 24px 60px; }
-  .head { display:flex; align-items:center; gap:22px; margin-bottom:34px; }
-  .head img { width:118px; height:118px; border-radius:18px; border:1px solid var(--border); object-fit:cover; }
-  h1 { margin:0 0 6px; font-size:30px; letter-spacing:.3px; }
-  .role { color:var(--muted); font-size:14px; line-height:1.5; }
-  .rule { border:none; border-top:1px solid var(--border); margin:0 0 28px; }
-  .bio p { font-size:15px; line-height:1.7; color:#c9d1d9; margin:0 0 16px; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,'Segoe UI',Roboto,sans-serif; }
+  nav { position:fixed; top:0; left:0; right:0; background:rgba(13,17,23,.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); z-index:10; }
+  .nav-in { max-width:720px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; }
+  .nav-name { font-weight:600; font-size:15px; letter-spacing:.2px; color:var(--text); text-decoration:none; }
+  .nav-links { display:flex; align-items:center; gap:20px; font-size:13px; }
+  .nav-links a { color:var(--muted); text-decoration:none; }
+  .nav-links a:hover { color:var(--text); }
+  .nav-links .lab { color:var(--text); border:1px solid var(--accent); border-radius:9px; padding:5px 12px; font-weight:600; }
+  .nav-links .lab:hover { background:rgba(88,166,255,.08); }
+  main { max-width:720px; margin:0 auto; padding:120px 24px 40px; }
+  .hero { display:flex; align-items:center; gap:26px; margin:26px 0 30px; }
+  .hero img { width:132px; height:132px; border-radius:20px; border:1px solid var(--border); object-fit:cover; }
+  h1 { margin:0 0 8px; font-size:38px; letter-spacing:-.5px; }
+  .role { color:var(--muted); font-size:14.5px; line-height:1.55; }
+  .statement { font-size:17px; line-height:1.65; color:var(--text); margin:0 0 14px; }
+  section { padding:34px 0 6px; }
+  h2 { font-size:12.5px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:var(--muted); margin:0 0 18px; }
+  .bio p { font-size:15px; line-height:1.75; color:var(--body); margin:0 0 15px; }
   .bio p b { color:var(--text); font-weight:600; }
-  .enter { display:inline-block; margin-top:18px; padding:14px 26px; background:var(--card); color:var(--text); border:1px solid var(--accent); border-radius:12px; font-size:15px; font-weight:600; text-decoration:none; transition:background .15s, transform .05s; }
+  .item { padding:13px 0; border-top:1px solid var(--border); font-size:14.5px; line-height:1.6; color:var(--body); }
+  .item:last-child { border-bottom:1px solid var(--border); }
+  .item b { color:var(--text); font-weight:600; display:block; margin-bottom:2px; }
+  .links { font-size:14px; padding:4px 0 10px; }
+  .links a { color:var(--body); text-decoration:none; border-bottom:1px solid var(--border); padding-bottom:1px; }
+  .links a:hover { color:var(--accent); border-color:var(--accent); }
+  .links span { margin:0 12px; color:var(--border); }
+  .loc { color:var(--muted); font-size:13px; }
+  .enter { display:inline-block; margin-top:30px; padding:14px 28px; background:var(--card); color:var(--text); border:1px solid var(--accent); border-radius:12px; font-size:15px; font-weight:600; text-decoration:none; transition:background .15s, transform .05s; }
   .enter:hover { background:#1c2330; }
   .enter:active { transform:scale(.985); }
-  footer { color:var(--muted); font-size:11.5px; margin-top:54px; }
-  .links { margin-top:26px; font-size:13.5px; color:var(--muted); }
-  .links a { color:var(--muted); text-decoration:none; border-bottom:1px solid var(--border); padding-bottom:1px; }
-  .links a:hover { color:var(--accent); border-color:var(--accent); }
-  .links span { margin:0 10px; color:var(--border); }
-  @media (max-width:480px) {
-    main { padding:48px 20px 48px; }
-    .head { flex-direction:column; text-align:center; gap:14px; }
+  footer { max-width:720px; margin:0 auto; padding:26px 24px 40px; color:var(--muted); font-size:11.5px; border-top:1px solid var(--border); }
+  @media (max-width:540px) {
+    main { padding-top:100px; }
+    .hero { flex-direction:column; text-align:center; gap:16px; }
+    h1 { font-size:32px; }
+    .nav-links { gap:14px; }
   }
 </style>
 </head>
 <body>
+<nav>
+  <div class="nav-in">
+    <a class="nav-name" href="#">David Gallardo</a>
+    <div class="nav-links">
+      <a href="#sobre-mi">Sobre mí</a>
+      <a href="#intereses">Intereses</a>
+      <a href="#contacto">Contacto</a>
+      <a class="lab" href="sharpe-lab.html">Sharpe Lab</a>
+    </div>
+  </div>
+</nav>
 <main>
-  <div class="head">
+  <div class="hero">
     <img src="assets/david.jpg" alt="David Gallardo">
     <div>
       <h1>David Gallardo</h1>
       <div class="role">Ingeniería Informática &middot; UC3M<br>Arquitectura de bajo nivel &middot; Sistemas LLM &middot; Finanzas</div>
     </div>
   </div>
-  <hr class="rule">
-  <div class="bio">
-    <p>Vivo en dos extremos del stack que rara vez se juntan: la <b>arquitectura de bajo nivel</b>, donde el código se convierte en ciclos de reloj, y los <b>sistemas LLM</b>, donde el código empieza a parecer pensamiento. Que sean mundos tan distintos no es casualidad: me interesa entender los sistemas de arriba abajo.</p>
-    <p>Esa misma obsesión me llevó a las <b>finanzas</b>. Construyo <b>Sharpe Lab</b>, un laboratorio de estrategias cuantitativas que testea cada idea fuera de muestra, con costes realistas, y la sigue después en paper trading en tiempo real antes de creérsela.</p>
-    <p>Y fuera del teclado, los <b>coches</b>. Pasión de las de verdad, sin remedio.</p>
-  </div>
-  <a class="enter" href="sharpe-lab.html">Entrar en Sharpe Lab &rarr;</a>
-  <div class="links">
-    <a href="https://www.linkedin.com/in/david-gallardo-moreno-08b871216/" rel="me">LinkedIn</a><span>&middot;</span><a href="https://github.com/Davizz-dev13" rel="me">GitHub</a><span>&middot;</span><a href="mailto:davidgallardomoreno7@gmail.com">Email</a>
-  </div>
-  <footer>Madrid, España</footer>
+  <p class="statement">Me interesan los sistemas: los que ejecutan en silicio, los que aprenden del texto y los que mueven el dinero.</p>
+
+  <section id="sobre-mi">
+    <h2>Sobre mí</h2>
+    <div class="bio">
+      <p>Vivo en dos extremos del stack que rara vez se juntan: la <b>arquitectura de bajo nivel</b>, donde el código se convierte en ciclos de reloj, y los <b>sistemas LLM</b>, donde el código empieza a parecer pensamiento. Que sean mundos tan distintos no es casualidad: me interesa entender los sistemas de arriba abajo.</p>
+      <p>Esa misma obsesión me llevó a las <b>finanzas</b>. Construyo <b>Sharpe Lab</b>, un laboratorio de estrategias cuantitativas que testea cada idea fuera de muestra, con costes realistas, y la sigue después en paper trading en tiempo real antes de creérsela.</p>
+      <p>Y fuera del teclado, los <b>coches</b>. Pasión de las de verdad, sin remedio.</p>
+    </div>
+    <a class="enter" href="sharpe-lab.html">Entrar en Sharpe Lab &rarr;</a>
+  </section>
+
+  <section id="intereses">
+    <h2>Intereses</h2>
+    <div class="item"><b>Arquitectura de bajo nivel</b>Qué pasa cuando el código toca el hierro: memoria, caché, ciclos de reloj.</div>
+    <div class="item"><b>Sistemas LLM</b>Cómo razona un modelo de lenguaje y cómo se le saca trabajo útil.</div>
+    <div class="item"><b>Finanzas cuantitativas</b>Estrategias con Sharpe alto y drawdowns bajo control. Sharpe Lab es mi laboratorio.</div>
+    <div class="item"><b>Coches</b>Si tiene volante, me interesa. Cuanto más se habla de él, mejor.</div>
+  </section>
+
+  <section id="contacto">
+    <h2>Contacto</h2>
+    <div class="links">
+      <a href="https://www.linkedin.com/in/david-gallardo-moreno-08b871216/" rel="me">LinkedIn</a><span>&middot;</span><a href="https://github.com/Davizz-dev13" rel="me">GitHub</a><span>&middot;</span><a href="mailto:davidgallardomoreno7@gmail.com">Email</a>
+    </div>
+    <div class="loc">Madrid, España</div>
+  </section>
 </main>
+<footer>David Gallardo &middot; Madrid, España</footer>
 </body>
 </html>
