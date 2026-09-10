@@ -1,103 +1,69 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>David Gallardo</title>
-<meta name="description" content="David Gallardo - Computer Engineering UC3M. Low-level architecture, LLM systems and quantitative finance. Building Sharpe Lab.">
+<title>Sharpe Lab</title>
 <style>
-  :root { --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#e6edf3; --body:#c9d1d9; --muted:#8b949e; --accent:#58a6ff; }
+  :root { --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; }
   * { box-sizing:border-box; }
-  html { scroll-behavior:smooth; }
-  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,'Segoe UI',Roboto,sans-serif; }
-  nav { position:fixed; top:0; left:0; right:0; background:rgba(13,17,23,.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); z-index:10; }
-  .nav-in { max-width:720px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; }
-  .nav-name { font-weight:600; font-size:15px; letter-spacing:.2px; color:var(--text); text-decoration:none; }
-  .nav-links { display:flex; align-items:center; gap:20px; font-size:13px; }
-  .nav-links a { color:var(--muted); text-decoration:none; }
-  .nav-links a:hover { color:var(--text); }
-  .nav-links .lab { color:var(--text); border:1px solid var(--accent); border-radius:9px; padding:5px 12px; font-weight:600; }
-  .nav-links .lab:hover { background:rgba(88,166,255,.08); }
-  main { max-width:720px; margin:0 auto; padding:120px 24px 40px; }
-  .hero { display:flex; align-items:center; gap:26px; margin:26px 0 30px; }
-  .hero img { width:132px; height:132px; border-radius:20px; border:1px solid var(--border); object-fit:cover; }
-  h1 { margin:0 0 8px; font-size:38px; letter-spacing:-.5px; }
-  .role { color:var(--muted); font-size:14.5px; line-height:1.55; }
-  .statement { font-size:17px; line-height:1.65; color:var(--text); margin:0 0 14px; }
-  section { padding:34px 0 6px; }
-  h2 { font-size:12.5px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:var(--muted); margin:0 0 18px; }
-  .bio p { font-size:15px; line-height:1.75; color:var(--body); margin:0 0 15px; }
-  .bio p b { color:var(--text); font-weight:600; }
-  .bio p a { color:var(--accent); text-decoration:none; border-bottom:1px solid var(--border); }
-  .bio p a:hover { border-color:var(--accent); }
-  .item { padding:13px 0; border-top:1px solid var(--border); font-size:14.5px; line-height:1.6; color:var(--body); }
-  .item:last-child { border-bottom:1px solid var(--border); }
-  .item b { color:var(--text); font-weight:600; display:block; margin-bottom:2px; }
-  .links { font-size:14px; padding:4px 0 10px; }
-  .links a { color:var(--body); text-decoration:none; border-bottom:1px solid var(--border); padding-bottom:1px; }
-  .links a:hover { color:var(--accent); border-color:var(--accent); }
-  .links span { margin:0 12px; color:var(--border); }
-  .loc { color:var(--muted); font-size:13px; }
-  .enter { display:inline-block; margin-top:30px; padding:14px 28px; background:var(--card); color:var(--text); border:1px solid var(--accent); border-radius:12px; font-size:15px; font-weight:600; text-decoration:none; transition:background .15s, transform .05s; }
-  .enter:hover { background:#1c2330; }
-  .enter:active { transform:scale(.985); }
-  footer { max-width:720px; margin:0 auto; padding:26px 24px 40px; color:var(--muted); font-size:11.5px; border-top:1px solid var(--border); }
-  @media (max-width:540px) {
-    main { padding-top:100px; }
-    .hero { flex-direction:column; text-align:center; gap:16px; }
-    h1 { font-size:32px; }
-    .nav-links { gap:14px; }
-  }
+  body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font-family:-apple-system,'Segoe UI',Roboto,sans-serif; display:flex; align-items:center; justify-content:center; }
+  main { width:100%; max-width:460px; padding:32px 24px; }
+  h1 { margin:0 0 4px; font-size:34px; letter-spacing:.5px; text-align:center; }
+  .sub { color:var(--muted); font-size:13px; margin-bottom:34px; text-align:center; }
+  .mbtn { display:block; width:100%; padding:16px 18px; margin:12px 0; background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:14px; font-size:16px; font-weight:600; cursor:pointer; text-decoration:none; text-align:left; transition:border-color .15s, transform .05s; }
+  .mbtn:hover { border-color:var(--accent); }
+  .mbtn:active { transform:scale(.985); }
+  .mbtn.primary { border-color:var(--accent); }
+  .mbtn .arrow { float:right; color:var(--muted); font-weight:400; }
+  button.mbtn { text-align:center; }
+  .back { display:block; margin:22px auto 0; background:none; border:none; color:var(--muted); font-size:14px; cursor:pointer; padding:6px 10px; }
+  .back:hover { color:var(--text); }
+  .expl { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; font-size:14.5px; line-height:1.55; }
+  .expl p { margin:0 0 12px; }
+  .expl p:last-child { margin:0; }
+  .expl .muted { color:var(--muted); font-size:12.5px; }
+  footer { color:var(--muted); font-size:11.5px; margin-top:34px; text-align:center; }
+  .view { display:none; }
+  .view.active { display:block; }
 </style>
 </head>
 <body>
-<nav>
-  <div class="nav-in">
-    <a class="nav-name" href="#">David Gallardo</a>
-    <div class="nav-links">
-      <a href="#about">About me</a>
-      <a href="#interests">Interests</a>
-      <a href="#contact">Contact</a>
-      <a class="lab" href="sharpe-lab.html">Sharpe Lab</a>
-    </div>
-  </div>
-</nav>
 <main>
-  <div class="hero">
-    <img src="assets/david.jpg" alt="David Gallardo">
-    <div>
-      <h1>David Gallardo</h1>
-      <div class="role">Computer Engineering &middot; UC3M<br>Madrid, Spain</div>
-    </div>
+  <h1>Sharpe Lab</h1>
+  <div class="sub">estrategias cuantitativas, seguidas en vivo</div>
+
+  <div class="view active" id="v-home">
+    <button class="mbtn" onclick="show('v-expl')">Explanation</button>
+    <button class="mbtn primary" onclick="show('v-strats')">Strats</button>
   </div>
-  <p class="statement">low level architecture, llm models &amp; finance.</p>
 
-  <section id="about">
-    <h2>About me</h2>
-    <div class="bio">
-      <p>What pulls me into engineering is data and systems that run efficiently. I'm studying Computer Engineering at UC3M, and my path goes from the metal up: <b>RISC-V assembly</b> and <b>Motorola 68000</b> microinstructions on one end, applied data engineering on the other. My projects span <b>supercar telemetry analysis</b> on Kaggle datasets and <a href="sharpe-lab.html"><b>Sharpe Lab</b></a>, the custom real-time stock market terminal I built to make investment analysis faster.</p>
-      <p>Away from the keyboard: <b>cars</b>. The incurable kind of passion.</p>
+  <div class="view" id="v-expl">
+    <div class="expl">
+      <p>Sharpe Lab es mi laboratorio personal de estrategias cuantitativas.</p>
+      <p>El objetivo: encontrar Sharpes muy altos sin sacrificar mucho CAGR y, sobre todo, evitando los drawdowns gordos.</p>
+      <p>Cada idea se testea fuera de muestra, con costes de transacción realistas y ventanas de 10 años. Las que pasan el filtro se siguen en paper trading en tiempo real (dinero ficticio, señales reales cada noche) antes de confiar un euro en ellas.</p>
+      <p class="muted">Nada de esto es consejo de inversión.</p>
     </div>
-    <a class="enter" href="sharpe-lab.html">Go to Sharpe Lab &rarr;</a>
-  </section>
+    <button class="back" onclick="show('v-home')">&larr; Volver</button>
+  </div>
 
-  <section id="interests">
-    <h2>Interests</h2>
-    <div class="item"><b>Building systems from scratch</b>From the first line to the last screw: understanding every layer because I wrote it.</div>
-    <div class="item"><b>Improving algorithms</b>Taking something that works and making it measurably faster, cheaper, cleaner.</div>
-    <div class="item"><b>Simracing</b>Wheel, pedals and telemetry - the closest thing to the track without leaving the desk.</div>
-    <div class="item"><b>Cars</b>If it has a steering wheel, I'm interested. The longer the conversation, the better.</div>
-    <div class="item"><b>Strength training</b>Weights, routine, progress. Quiet discipline, nothing to prove.</div>
-  </section>
+  <div class="view" id="v-strats">
+    <a class="mbtn" href="semis/">Semiconductors<span class="arrow">&rarr;</span></a>
+    <a class="mbtn" href="dashboard.html#btc">Bitcoin<span class="arrow">&rarr;</span></a>
+    <a class="mbtn" href="dashboard.html#msci">MSCI<span class="arrow">&rarr;</span></a>
+    <a class="mbtn" href="mag7/">Mag7<span class="arrow">&rarr;</span></a>
+    <button class="back" onclick="show('v-home')">&larr; Volver</button>
+  </div>
 
-  <section id="contact">
-    <h2>Contact</h2>
-    <div class="links">
-      <a href="https://www.linkedin.com/in/david-gallardo-moreno-08b871216/" rel="me">LinkedIn</a><span>&middot;</span><a href="https://github.com/Davizz-dev13" rel="me">GitHub</a><span>&middot;</span><a href="mailto:davidgallardomoreno7@gmail.com">Email</a>
-    </div>
-    <div class="loc">Madrid, Spain</div>
-  </section>
+  <footer>Paper trading en vivo y backtests con costes. Rentabilidades pasadas no garantizan resultados futuros.</footer>
 </main>
-<footer>David Gallardo &middot; Madrid, Spain</footer>
+<script>
+function show(id){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+</script>
 </body>
 </html>

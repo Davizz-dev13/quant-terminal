@@ -6,7 +6,7 @@
 
 Un terminal cuantitativo personal: descarga datos diarios, calcula métricas y señales de trading sistemático, manda alertas a Telegram y lleva el seguimiento de cada estrategia en un dashboard público que se actualiza solo cada noche.
 
-**[Ver el dashboard en vivo](https://davizz-dev13.github.io/quant-terminal/)**
+**[Ver el dashboard en vivo](https://davizz-dev13.github.io/sharpe-lab/)**
 
 
 ## Qué hace
@@ -59,7 +59,7 @@ python scripts/walk_forward.py
 
 ### Estrategia #4: Rotación Semis (roc126 top2 vol-escalada)
 
-Apartado propio: **[ver](https://davizz-dev13.github.io/quant-terminal/semis/)**. Rotación diaria sobre NVDA, AVGO, AMD, TSM y ASML:
+Apartado propio: **[ver](https://davizz-dev13.github.io/sharpe-lab/semis/)**. Rotación diaria sobre NVDA, AVGO, AMD, TSM y ASML:
 
 - **Selección**: los 2 semis con mayor ROC de 126 días, solo si su ROC es positivo; si ninguno lo es, 100% cash.
 - **Dimensionado**: reparto equitativo entre las patas; cada pata escalada por min(1, 0.25/vol20).
@@ -67,7 +67,7 @@ Apartado propio: **[ver](https://davizz-dev13.github.io/quant-terminal/semis/)**
 
 ### Estrategia Mag7 + Oro + BTC (SMA200 semanal)
 
-Apartado propio en el dashboard: **[ver](https://davizz-dev13.github.io/quant-terminal/mag7/)**. Estrategia contrarian en timeframe semanal sobre las 7 magníficas, GLD y BTC-USD:
+Apartado propio en el dashboard: **[ver](https://davizz-dev13.github.io/sharpe-lab/mag7/)**. Estrategia contrarian en timeframe semanal sobre las 7 magníficas, GLD y BTC-USD:
 
 - **Entrada**: el cierre semanal cruza a la baja la SMA200 semanal.
 - **Salida**: cuando el RSI(14) semanal supera 70 la posición queda armada; se vende al caer más de un 5% desde el máximo cierre posterior.
