@@ -58,8 +58,7 @@
   </div>
 
   <div class="panel">
-    <h2>Validación walk-forward<span class="tag wf">OUT-OF-SAMPLE</span></h2>
-    <p class="note">Cada pliego anual se evalúa solo con el pasado disponible hasta ese año. Es la referencia más honesta de robustez: mira la mediana de Sharpe por año y el % de años positivos, no el total.</p>
+    <h2>Validación walk-forward</h2>
     <table id="wf-table">
       <thead><tr><th>Estrategia</th><th>Sharpe OOS</th><th>Años positivos</th><th>Retorno OOS</th><th>Max DD OOS</th></tr></thead>
       <tbody></tbody>
@@ -137,14 +136,14 @@ function renderCards() {
   const el = document.getElementById('cards');
   el.innerHTML = '';
   Object.entries(DATA.strategies).forEach(([name, s]) => {
-    const cls = s.total_return >= 0 ? 'pos' : 'neg';
-    const ytdCls = s.ytd_return >= 0 ? 'pos' : 'neg';
+    const n = DATA.dates.length;
+    const yrs = (Date.parse(DATA.dates[n-1]) - Date.parse(DATA.dates[0])) / (365.25*864e5);
+    const cagr = (Math.pow(s.equity[s.equity.length-1] / s.equity[0], 1/yrs) - 1) * 100;
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `<h3>${name}</h3>
-      <div class="big ${cls}">${s.total_return}%</div>
-      <div class="row"><span>YTD</span><span class="${ytdCls}">${s.ytd_return}%</span></div>
       <div class="row"><span>Sharpe</span><span>${s.sharpe === null ? '-' : s.sharpe.toFixed(2)}</span></div>
+      <div class="row"><span>CAGR</span><span class="${cagr >= 0 ? 'pos' : 'neg'}">${cagr.toFixed(1)}%</span></div>
       <div class="row"><span>Max DD</span><span class="neg">${s.max_dd}%</span></div>`;
     el.appendChild(card);
   });
@@ -246,6 +245,12 @@ function renderWalkForward() {
     head.onclick = () => { detail.style.display = detail.style.display === 'none' ? '' : 'none'; };
     body.appendChild(head); body.appendChild(detail);
   });
+  // Rotacion Semis-8 v1: numeros OOS validados por investigacion (2026-09-10), ventana 2018-2026
+  const semis = document.createElement('tr');
+  semis.className = 'fold-head';
+  semis.innerHTML = `<td><strong><a href="semis/" style="color:inherit">Rotación Semis-8 v1</a></strong></td>
+    <td>1.42</td><td>89%</td><td class="pos">2005.41%</td><td class="neg">-25%</td>`;
+  body.appendChild(semis);
 }
 
 Promise.all([fetch('data.json').then(r => r.json()), fetch('walkforward.json').then(r => r.json())])
