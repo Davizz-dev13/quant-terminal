@@ -3,67 +3,47 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sharpe Lab</title>
+<title>David Gallardo</title>
+<meta name="description" content="David Gallardo - Ingeniería Informática UC3M. Arquitectura de bajo nivel, sistemas LLM y finanzas cuantitativas. Constructor de Sharpe Lab.">
 <style>
   :root { --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; }
   * { box-sizing:border-box; }
-  body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font-family:-apple-system,'Segoe UI',Roboto,sans-serif; display:flex; align-items:center; justify-content:center; }
-  main { width:100%; max-width:460px; padding:32px 24px; }
-  h1 { margin:0 0 4px; font-size:34px; letter-spacing:.5px; text-align:center; }
-  .sub { color:var(--muted); font-size:13px; margin-bottom:34px; text-align:center; }
-  .mbtn { display:block; width:100%; padding:16px 18px; margin:12px 0; background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:14px; font-size:16px; font-weight:600; cursor:pointer; text-decoration:none; text-align:left; transition:border-color .15s, transform .05s; }
-  .mbtn:hover { border-color:var(--accent); }
-  .mbtn:active { transform:scale(.985); }
-  .mbtn.primary { border-color:var(--accent); }
-  .mbtn .arrow { float:right; color:var(--muted); font-weight:400; }
-  button.mbtn { text-align:center; }
-  .back { display:block; margin:22px auto 0; background:none; border:none; color:var(--muted); font-size:14px; cursor:pointer; padding:6px 10px; }
-  .back:hover { color:var(--text); }
-  .expl { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; font-size:14.5px; line-height:1.55; }
-  .expl p { margin:0 0 12px; }
-  .expl p:last-child { margin:0; }
-  .expl .muted { color:var(--muted); font-size:12.5px; }
-  footer { color:var(--muted); font-size:11.5px; margin-top:34px; text-align:center; }
-  .view { display:none; }
-  .view.active { display:block; }
+  body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font-family:-apple-system,'Segoe UI',Roboto,sans-serif; }
+  main { max-width:640px; margin:0 auto; padding:72px 24px 60px; }
+  .head { display:flex; align-items:center; gap:22px; margin-bottom:34px; }
+  .head img { width:118px; height:118px; border-radius:18px; border:1px solid var(--border); object-fit:cover; }
+  h1 { margin:0 0 6px; font-size:30px; letter-spacing:.3px; }
+  .role { color:var(--muted); font-size:14px; line-height:1.5; }
+  .rule { border:none; border-top:1px solid var(--border); margin:0 0 28px; }
+  .bio p { font-size:15px; line-height:1.7; color:#c9d1d9; margin:0 0 16px; }
+  .bio p b { color:var(--text); font-weight:600; }
+  .enter { display:inline-block; margin-top:18px; padding:14px 26px; background:var(--card); color:var(--text); border:1px solid var(--accent); border-radius:12px; font-size:15px; font-weight:600; text-decoration:none; transition:background .15s, transform .05s; }
+  .enter:hover { background:#1c2330; }
+  .enter:active { transform:scale(.985); }
+  footer { color:var(--muted); font-size:11.5px; margin-top:54px; }
+  @media (max-width:480px) {
+    main { padding:48px 20px 48px; }
+    .head { flex-direction:column; text-align:center; gap:14px; }
+  }
 </style>
 </head>
 <body>
 <main>
-  <h1>Sharpe Lab</h1>
-  <div class="sub">estrategias cuantitativas, seguidas en vivo</div>
-
-  <div class="view active" id="v-home">
-    <button class="mbtn" onclick="show('v-expl')">Explanation</button>
-    <button class="mbtn primary" onclick="show('v-strats')">Strats</button>
-  </div>
-
-  <div class="view" id="v-expl">
-    <div class="expl">
-      <p>Sharpe Lab es mi laboratorio personal de estrategias cuantitativas.</p>
-      <p>El objetivo: encontrar Sharpes muy altos sin sacrificar mucho CAGR y, sobre todo, evitando los drawdowns gordos.</p>
-      <p>Cada idea se testea fuera de muestra, con costes de transacción realistas y ventanas de 10 años. Las que pasan el filtro se siguen en paper trading en tiempo real (dinero ficticio, señales reales cada noche) antes de confiar un euro en ellas.</p>
-      <p class="muted">Nada de esto es consejo de inversión.</p>
+  <div class="head">
+    <img src="assets/david.jpg" alt="David Gallardo">
+    <div>
+      <h1>David Gallardo</h1>
+      <div class="role">Ingeniería Informática &middot; UC3M<br>Arquitectura de bajo nivel &middot; Sistemas LLM &middot; Finanzas</div>
     </div>
-    <button class="back" onclick="show('v-home')">&larr; Volver</button>
   </div>
-
-  <div class="view" id="v-strats">
-    <a class="mbtn" href="semis/">Semiconductors<span class="arrow">&rarr;</span></a>
-    <a class="mbtn" href="dashboard.html#btc">Bitcoin<span class="arrow">&rarr;</span></a>
-    <a class="mbtn" href="dashboard.html#msci">MSCI<span class="arrow">&rarr;</span></a>
-    <a class="mbtn" href="mag7/">Mag7<span class="arrow">&rarr;</span></a>
-    <button class="back" onclick="show('v-home')">&larr; Volver</button>
+  <hr class="rule">
+  <div class="bio">
+    <p>Vivo en dos extremos del stack que rara vez se juntan: la <b>arquitectura de bajo nivel</b>, donde el código se convierte en ciclos de reloj, y los <b>sistemas LLM</b>, donde el código empieza a parecer pensamiento. Que sean mundos tan distintos no es casualidad: me interesa entender los sistemas de arriba abajo.</p>
+    <p>Esa misma obsesión me llevó a las <b>finanzas</b>. Construyo <b>Sharpe Lab</b>, un laboratorio de estrategias cuantitativas que testea cada idea fuera de muestra, con costes realistas, y la sigue después en paper trading en tiempo real antes de creérsela.</p>
+    <p>Y fuera del teclado, los <b>coches</b>. Pasión de las de verdad, sin remedio.</p>
   </div>
-
-  <footer>Paper trading en vivo y backtests con costes. Rentabilidades pasadas no garantizan resultados futuros.</footer>
+  <a class="enter" href="sharpe-lab.html">Entrar en Sharpe Lab &rarr;</a>
+  <footer>Madrid, España</footer>
 </main>
-<script>
-function show(id){
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo(0,0);
-}
-</script>
 </body>
 </html>

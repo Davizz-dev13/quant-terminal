@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sharpe Lab</title>
+<style>
+  :root { --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font-family:-apple-system,'Segoe UI',Roboto,sans-serif; display:flex; align-items:center; justify-content:center; }
+  main { width:100%; max-width:460px; padding:32px 24px; }
+  h1 { margin:0 0 4px; font-size:34px; letter-spacing:.5px; text-align:center; }
+  .sub { color:var(--muted); font-size:13px; margin-bottom:34px; text-align:center; }
+  .mbtn { display:block; width:100%; padding:16px 18px; margin:12px 0; background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:14px; font-size:16px; font-weight:600; cursor:pointer; text-decoration:none; text-align:left; transition:border-color .15s, transform .05s; }
+  .mbtn:hover { border-color:var(--accent); }
+  .mbtn:active { transform:scale(.985); }
+  .mbtn.primary { border-color:var(--accent); }
+  .mbtn .arrow { float:right; color:var(--muted); font-weight:400; }
+  button.mbtn { text-align:center; }
+  .back { display:block; margin:22px auto 0; background:none; border:none; color:var(--muted); font-size:14px; cursor:pointer; padding:6px 10px; }
+  .back:hover { color:var(--text); }
+  .expl { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; font-size:14.5px; line-height:1.55; }
+  .expl p { margin:0 0 12px; }
+  .expl p:last-child { margin:0; }
+  .expl .muted { color:var(--muted); font-size:12.5px; }
+  footer { color:var(--muted); font-size:11.5px; margin-top:34px; text-align:center; }
+  .view { display:none; }
+  .view.active { display:block; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Sharpe Lab</h1>
+  <div class="sub">estrategias cuantitativas, seguidas en vivo</div>
+
+  <div class="view active" id="v-home">
+    <button class="mbtn" onclick="show('v-expl')">Explanation</button>
+    <button class="mbtn primary" onclick="show('v-strats')">Strats</button>
+  </div>
+
+  <div class="view" id="v-expl">
+    <div class="expl">
+      <p>Sharpe Lab es mi laboratorio personal de estrategias cuantitativas.</p>
+      <p>El objetivo: encontrar Sharpes muy altos sin sacrificar mucho CAGR y, sobre todo, evitando los drawdowns gordos.</p>
+      <p>Cada idea se testea fuera de muestra, con costes de transacción realistas y ventanas de 10 años. Las que pasan el filtro se siguen en paper trading en tiempo real (dinero ficticio, señales reales cada noche) antes de confiar un euro en ellas.</p>
+      <p class="muted">Nada de esto es consejo de inversión.</p>
+    </div>
+    <button class="back" onclick="show('v-home')">&larr; Volver</button>
+  </div>
+
+  <div class="view" id="v-strats">
+    <a class="mbtn" href="semis/">Semiconductors<span class="arrow">&rarr;</span></a>
+    <a class="mbtn" href="dashboard.html#btc">Bitcoin<span class="arrow">&rarr;</span></a>
+    <a class="mbtn" href="dashboard.html#msci">MSCI<span class="arrow">&rarr;</span></a>
+    <a class="mbtn" href="mag7/">Mag7<span class="arrow">&rarr;</span></a>
+    <button class="back" onclick="show('v-home')">&larr; Volver</button>
+  </div>
+
+  <footer>Paper trading en vivo y backtests con costes. Rentabilidades pasadas no garantizan resultados futuros.</footer>
+</main>
+<script>
+function show(id){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
