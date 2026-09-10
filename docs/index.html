@@ -94,16 +94,17 @@
 <footer>Datos diarios vía yfinance. Backtest y walk-forward con costes de transacción y rentabilidad del cash según <code>config/settings.yaml</code>. El paper trading en vivo aplica las posiciones del motor desde el go-live y se reconcilia con la hoja "Quant Tracker". Rentabilidades pasadas, simuladas o no, no garantizan resultados futuros.</footer>
 <script>
 const COLORS = ['#58a6ff','#3fb950','#f778ba','#d29922','#a5d6ff','#ff9b6a','#bc8cff','#7ee787'];
-let DATA = null, WF = null, mainChart = null, ytdChart = null, liveChart = null;
+let DATA = null, WF = null, SEMIS = null, mainChart = null, ytdChart = null, liveChart = null;
 let state = { tf: 'ALL', asset: 'BTC-USD' };
 
 const goLivePlugin = {
   id: 'goLiveLine',
   afterDatasetsDraw(chart) {
-    if (!DATA || !DATA.go_live) return;
+    const golive = chart.$golive || (DATA && DATA.go_live);
+    if (!golive) return;
     const labels = chart.data.labels;
-    const idx = labels.indexOf(DATA.go_live) >= 0 ? labels.indexOf(DATA.go_live)
-      : labels.findIndex(d => d > DATA.go_live);
+    const idx = labels.indexOf(golive) >= 0 ? labels.indexOf(golive)
+      : labels.findIndex(d => d > golive);
     if (idx < 0) return;
     const x = chart.scales.x.getPixelForValue(idx);
     const {top, bottom} = chart.chartArea;
@@ -176,9 +177,19 @@ function renorm(arr, i0) {
 }
 
 function renderMain() {
+  let labels, datasets = [], golive = DATA.go_live;
+  if (state.asset === 'Semis-8' && SEMIS) {
+    const st = tfStart(state.tf);
+    let i0s = SEMIS.dates.findIndex(d => d >= st); if (i0s < 0) i0s = 0;
+    labels = SEMIS.dates.slice(i0s);
+    golive = SEMIS.go_live || golive;
+    datasets.push({ label: 'Rotación Semis-8 v1', data: renorm(SEMIS.equity, i0s), borderColor: '#bc8cff',
+      borderWidth: 1.8, pointRadius: 0, tension: 0.15 });
+    datasets.push({ label: 'Buy & Hold cesta semis', data: renorm(SEMIS.bh_equity, i0s), borderColor: '#6e7681',
+      borderWidth: 1.2, borderDash: [5,4], pointRadius: 0, tension: 0.15 });
+  } else {
   const i0 = sliceFrom(tfStart(state.tf));
-  const labels = DATA.dates.slice(i0);
-  let datasets = [];
+  labels = DATA.dates.slice(i0);
   if (!state.asset) {
     Object.entries(DATA.strategies).forEach(([name, s], idx) => {
       datasets.push({ label: name, data: renorm(s.equity, i0), borderColor: COLORS[idx % COLORS.length],
@@ -197,6 +208,7 @@ function renderMain() {
     if (anyS) datasets.push({ label: 'Buy & Hold ' + state.asset, data: renorm(anyS.bh_equity, i0),
       borderColor: '#6e7681', borderWidth: 1.2, borderDash: [5,4], pointRadius: 0, tension: 0.15 });
   }
+  }
   if (mainChart) mainChart.destroy();
   mainChart = new Chart(document.getElementById('main-chart'), {
     type: 'line', data: { labels, datasets }, plugins: [goLivePlugin],
@@ -205,6 +217,7 @@ function renderMain() {
       scales: { x: { ticks: { color: '#8b949e', maxTicksLimit: 10 }, grid: { color: '#21262d' } },
                 y: { ticks: { color: '#8b949e' }, grid: { color: '#21262d' }, title: { display: true, text: 'Crecimiento de 1€', color: '#8b949e' } } } }
   });
+  mainChart.$golive = golive;
 }
 
 function renderYtd() {
@@ -253,14 +266,16 @@ function renderWalkForward() {
   body.appendChild(semis);
 }
 
-Promise.all([fetch('data.json').then(r => r.json()), fetch('walkforward.json').then(r => r.json())])
-.then(([d, wf]) => {
-  DATA = d; WF = wf;
+Promise.all([fetch('data.json').then(r => r.json()), fetch('walkforward.json').then(r => r.json()),
+  fetch('semis/semis.json').then(r => r.json()).catch(() => null)])
+.then(([d, wf, sm]) => {
+  DATA = d; WF = wf; SEMIS = sm;
   document.getElementById('updated').textContent =
     'Actualizado: ' + new Date(d.generated_at).toLocaleString('es-ES') +
     ' · ' + d.universe.length + ' activos · ' + Object.keys(d.strategies).length + ' estrategias · go-live ' + d.go_live;
   const sel = document.getElementById('asset-select');
   d.universe.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o); });
+  if (SEMIS) { const os = document.createElement('option'); os.value = 'Semis-8'; os.textContent = 'Semis-8 (cesta)'; sel.appendChild(os); }
   sel.value = 'BTC-USD';
   sel.onchange = () => { state.asset = sel.value; renderMain(); };
   document.querySelectorAll('#tf-buttons button').forEach(b => b.onclick = () => {
