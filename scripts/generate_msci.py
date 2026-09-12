@@ -128,7 +128,7 @@ def main():
         "rules": {
             "name": "MomVol",
             "selection": f"Largo si ROC de {ROC_DAYS} dias > 0; si no, cash",
-            "sizing": f"Peso min(1, {TARGET_VOL}/vol20)",
+            "sizing": f"Peso min(1, {TARGET_VOL:.2f}/vol20)",
             "execution": "Senal al cierre, posicion desde la barra siguiente",
             "cost": COST, "cash_rate": CASH,
             "note": "Proxy URTH (iShares MSCI World), datos desde 2012 - ventana mas corta que el resto del terminal"},
