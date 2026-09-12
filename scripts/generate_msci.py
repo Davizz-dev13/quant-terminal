@@ -3,7 +3,7 @@
 Salida: docs/msci/msci.json - vivo (go-live 2026-09-10), walk-forward anual
 OOS y backtest de referencia vs buy & hold de URTH (proxy MSCI World, 2012+).
 Regla MomVol (canonica del harness de investigacion): largo si ROC126 > 0,
-peso min(1, 0.15/vol20), senal al cierre ejecutable desde la barra siguiente,
+peso min(1, 0.10/vol20), senal al cierre ejecutable desde la barra siguiente,
 coste 0.1% por cambio, cash remunerado segun config.
 """
 from __future__ import annotations
@@ -23,7 +23,7 @@ TICKER = "URTH"
 NAME = "MomVol MSCI World"
 ROC_DAYS = 126
 VOL_DAYS = 20
-TARGET_VOL = 0.15
+TARGET_VOL = 0.10
 GO_LIVE = "2026-09-10"
 WINDOW_YEARS = 10
 START_YEAR = 2018
@@ -78,10 +78,10 @@ def download(t: str) -> pd.Series:
 
 
 def momvol_weights(close: pd.Series) -> pd.Series:
-    """Peso objetivo diario: min(1, 0.15/vol20) si ROC126 > 0; si no, 0."""
+    """Peso objetivo diario: min(1, 0.10/vol20) si ROC126 > 0; si no, 0."""
     roc = close.pct_change(ROC_DAYS)
     vol = close.pct_change().rolling(VOL_DAYS).std(ddof=1) * np.sqrt(252)
-    w = (0.15 / vol).clip(upper=1.0).fillna(0.0)
+    w = (0.10 / vol).clip(upper=1.0).fillna(0.0)
     return w.where(roc > 0, 0.0).fillna(0.0)
 
 

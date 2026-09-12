@@ -111,7 +111,7 @@ def main():
         "rules": {
             "name": "roc126 top2 vol-escalada",
             "selection": "Top-2 por ROC de 126 dias, solo si ROC > 0 (si ninguno, 100% cash)",
-            "sizing": "Reparto equitativo entre patas; cada pata escalada por min(1, 0.25/vol20)",
+            "sizing": "Reparto equitativo entre patas; cada pata escalada por min(1, 0.10/vol20)",
             "execution": "Senal al cierre, posicion desde la barra siguiente",
             "cost": COST, "cash_rate": CASH},
         "dates": [str(d.date()) for d in Cw.index],

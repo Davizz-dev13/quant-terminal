@@ -3,7 +3,7 @@
 Universo: NVDA, AVGO, AMD, TSM, ASML.
 Cada dia: ROC de 126 dias de los 5; se mantienen los 2 con mayor ROC, solo si
 su ROC > 0 (si ninguno es positivo, 100% cash). Reparto equitativo entre las
-patas seleccionadas; cada pata se escala por min(1, 0.25/vol20). Coste 0.1%
+patas seleccionadas; cada pata se escala por min(1, 0.10/vol20). Coste 0.1%
 por cambio de pata; cash remunerado segun config.
 Senal al cierre, ejecutable desde la barra siguiente (convencion del proyecto).
 """
@@ -14,7 +14,7 @@ import pandas as pd
 SEMIS = ["NVDA", "AVGO", "AMD", "TSM", "ASML"]
 ROC_DAYS = 126
 VOL_DAYS = 20
-TARGET_VOL = 0.25
+TARGET_VOL = 0.10
 
 
 def target_weights(closes: pd.DataFrame) -> pd.DataFrame:

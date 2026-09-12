@@ -62,7 +62,7 @@ python scripts/walk_forward.py
 Apartado propio: **[ver](https://davizz-dev13.github.io/sharpe-lab/semis/)**. Rotación diaria sobre NVDA, AVGO, AMD, TSM y ASML:
 
 - **Selección**: los 2 semis con mayor ROC de 126 días, solo si su ROC es positivo; si ninguno lo es, 100% cash.
-- **Dimensionado**: reparto equitativo entre las patas; cada pata escalada por min(1, 0.25/vol20).
+- **Dimensionado**: reparto equitativo entre las patas; cada pata escalada por min(1, 0.10/vol20).
 - Señal al cierre, ejecutable al día siguiente. Coste 0.1% por cambio de pata. Las alertas nocturnas avisan cuando entra o sale una pata.
 
 ### Estrategia Mag7 + Oro + BTC (SMA200 semanal)
